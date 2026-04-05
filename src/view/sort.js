@@ -1,9 +1,7 @@
-export default class Sort {
-  constructor() {
-    this.element = null;
-  }
+import View from './view.js';
 
-  getTemplate() {
+export default class Sort extends View {
+  get template() {
     return `<form class="trip-events__trip-sort  trip-sort">
       <div class="trip-sort__item  trip-sort__item--day">
         <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-day" checked>
@@ -30,14 +28,5 @@ export default class Sort {
         <label class="trip-sort__btn" for="sort-offer">Offers</label>
       </div>
     </form>`;
-  }
-
-  getElement() {
-    if (!this.element) {
-      const div = document.createElement('div');
-      div.innerHTML = this.getTemplate();
-      this.element = div.firstElementChild;
-    }
-    return this.element;
   }
 }
