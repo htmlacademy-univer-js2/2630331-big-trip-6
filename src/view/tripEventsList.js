@@ -1,18 +1,7 @@
-export default class TripEventsList {
-  constructor() {
-    this.element = null;
-  }
+import View from './view.js';
 
-  getTemplate() {
+export default class TripEventsList extends View {
+  get template() {
     return `<ul class="trip-events__list"></ul>`;
-  }
-
-  getElement() {
-    if (!this.element) {
-      const div = document.createElement('div');
-      div.innerHTML = this.getTemplate();
-      this.element = div.firstElementChild;
-    }
-    return this.element;
   }
 }

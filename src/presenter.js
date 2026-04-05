@@ -1,16 +1,20 @@
 import Filter from './view/filter.js';
 import Sort from './view/sort.js';
-import EventForm from './view/eventForm.js';
-import Event from './view/event.js';
 import TripEventsList from './view/tripEventsList.js';
-import { render, RenderPosition } from './render.js';
+import RoutePointView from './view/routePointView.js';
+import EditFormView from './view/editFormView.js';
+import { render, RenderPosition, replace } from './render.js';
 
 export default class Presenter {
+  #filter = new Filter();
+  #sort = new Sort();
+  #tripEventsList = new TripEventsList();
+  #model = null;
+  #pointViewMap = new Map();
+  #editFormViewMap = new Map();
+
   constructor(model) {
-    this.model = model;
-    this.filter = new Filter();
-    this.sort = new Sort();
-    this.tripEventsList = new TripEventsList();
+    this.#model = model;
   }
 
   init() {
@@ -18,36 +22,81 @@ export default class Presenter {
     const eventsSection = document.querySelector('.trip-events');
     const tripList = document.querySelector('.trip-events__list');
 
-    render(this.filter, filterContainer);
-    render(this.sort, eventsSection, RenderPosition.BEFOREEND);
-    render(this.tripEventsList, eventsSection, RenderPosition.BEFOREEND);
+    render(this.#filter, filterContainer);
+    render(this.#sort, eventsSection, RenderPosition.BEFOREEND);
+    render(this.#tripEventsList, eventsSection, RenderPosition.BEFOREEND);
 
-    const points = this.model.getPoints();
-    const destinations = this.model.getDestinations();
-    const offers = this.model.getOffers();
-
-    if (points.length > 0) {
-      const firstPoint = points[0];
-      const firstDestination = this.model.getDestinationById(firstPoint.destinationId);
-      const firstPointOffers = this.model.getOffersByIds(firstPoint.offers);
-      const availableOffers = this.model.getOffersByType(firstPoint.type);
-
-      const eventForm = new EventForm(firstPoint, firstDestination, availableOffers);
-      const eventFormItem = document.createElement('li');
-      eventFormItem.classList.add('trip-events__item');
-      eventFormItem.appendChild(eventForm.getElement());
-      tripList.appendChild(eventFormItem);
-    }
+    const points = this.#model.getPoints();
 
     points.forEach(point => {
-      const destination = this.model.getDestinationById(point.destinationId);
-      const pointOffers = this.model.getOffersByIds(point.offers);
-
-      const event = new Event(point, destination, pointOffers);
-      const eventItem = document.createElement('li');
-      eventItem.classList.add('trip-events__item');
-      eventItem.appendChild(event.getElement());
-      tripList.appendChild(eventItem);
+      this.#renderPoint(point, tripList);
     });
+  }
+
+  #renderPoint(point, container) {
+    const destination = this.#model.getDestinationById(point.destinationId);
+    const pointOffers = this.#model.getOffersByIds(point.offers);
+    const availableOffers = this.#model.getOffersByType(point.type);
+
+    const routePointView = new RoutePointView(point, destination, pointOffers);
+    const editFormView = new EditFormView(point, destination, availableOffers);
+
+    this.#pointViewMap.set(point.id, routePointView);
+    this.#editFormViewMap.set(point.id, editFormView);
+
+    const handleEditClick = () => {
+      replace(editFormView, routePointView);
+      this.#addEscKeyListener(point.id, () => this.#closeEditForm(point.id, container));
+    };
+
+    const handleFormSubmit = () => {
+      replace(routePointView, editFormView);
+      this.#removeEscKeyListener();
+    };
+
+    const handleRollupClick = () => {
+      replace(routePointView, editFormView);
+      this.#removeEscKeyListener();
+    };
+
+    routePointView.setEditClickHandler(handleEditClick);
+    editFormView.setFormSubmitHandler(handleFormSubmit);
+    editFormView.setRollupClickHandler(handleRollupClick);
+
+    render(routePointView, container);
+  }
+
+  #closeEditForm(pointId, container) {
+    const routePointView = this.#pointViewMap.get(pointId);
+    const editFormView = this.#editFormViewMap.get(pointId);
+
+    if (routePointView && editFormView) {
+      replace(routePointView, editFormView);
+    }
+
+    this.#removeEscKeyListener();
+  }
+
+  #escKeyListener = null;
+
+  #addEscKeyListener(pointId, callback) {
+    if (this.#escKeyListener) {
+      document.removeEventListener('keydown', this.#escKeyListener);
+    }
+
+    this.#escKeyListener = (evt) => {
+      if (evt.key === 'Escape') {
+        callback();
+      }
+    };
+
+    document.addEventListener('keydown', this.#escKeyListener);
+  }
+
+  #removeEscKeyListener() {
+    if (this.#escKeyListener) {
+      document.removeEventListener('keydown', this.#escKeyListener);
+      this.#escKeyListener = null;
+    }
   }
 }

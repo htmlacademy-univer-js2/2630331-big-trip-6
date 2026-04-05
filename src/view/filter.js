@@ -1,9 +1,7 @@
-export default class Filter {
-  constructor() {
-    this.element = null;
-  }
+import View from './view.js';
 
-  getTemplate() {
+export default class Filter extends View {
+  get template() {
     return `<form class="trip-filters">
       <div class="trip-filters__filter">
         <input id="filter-everything" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="everything">
@@ -27,14 +25,5 @@ export default class Filter {
 
       <button class="visually-hidden" type="submit">Accept filter</button>
     </form>`;
-  }
-
-  getElement() {
-    if (!this.element) {
-      const div = document.createElement('div');
-      div.innerHTML = this.getTemplate();
-      this.element = div.firstElementChild;
-    }
-    return this.element;
   }
 }
