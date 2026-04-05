@@ -3,30 +3,52 @@ import Sort from './view/sort.js';
 import TripEventsList from './view/tripEventsList.js';
 import RoutePointView from './view/routePointView.js';
 import EditFormView from './view/editFormView.js';
+import EmptyListView from './view/emptyListView.js';
 import { render, RenderPosition, replace } from './render.js';
 
 export default class Presenter {
-  #filter = new Filter();
-  #sort = new Sort();
   #tripEventsList = new TripEventsList();
   #model = null;
   #pointViewMap = new Map();
   #editFormViewMap = new Map();
+  #filterComponent = null;
+  #sortComponent = null;
 
   constructor(model) {
     this.#model = model;
   }
 
   init() {
-    const filterContainer = document.querySelector('.trip-controls__filters');
+    const points = this.#model.getPoints();
     const eventsSection = document.querySelector('.trip-events');
-    const tripList = document.querySelector('.trip-events__list');
 
-    render(this.#filter, filterContainer);
-    render(this.#sort, eventsSection, RenderPosition.BEFOREEND);
+    if (points.length === 0) {
+      this.#renderEmpty(eventsSection);
+      return;
+    }
+
+    this.#renderWithContent(points, eventsSection);
+  }
+
+  #renderEmpty(container) {
+    const emptyListView = new EmptyListView();
+    render(emptyListView, container);
+  }
+
+  #renderWithContent(points, eventsSection) {
+    const filterContainer = document.querySelector('.trip-controls__filters');
+
+    const filterStates = this.#computeFilterStates(points);
+    this.#filterComponent = new Filter(filterStates, 'everything');
+    render(this.#filterComponent, filterContainer);
+
+    const sortStates = this.#computeSortStates();
+    this.#sortComponent = new Sort(sortStates);
+    render(this.#sortComponent, eventsSection, RenderPosition.BEFOREEND);
+
     render(this.#tripEventsList, eventsSection, RenderPosition.BEFOREEND);
 
-    const points = this.#model.getPoints();
+    const tripList = document.querySelector('.trip-events__list');
 
     points.forEach(point => {
       this.#renderPoint(point, tripList);
@@ -75,6 +97,35 @@ export default class Presenter {
     }
 
     this.#removeEscKeyListener();
+  }
+
+  #computeFilterStates(points) {
+    const now = new Date();
+
+    const hasFuturePoints = points.some(point => new Date(point.dateFrom) > now);
+    const hasPresentPoints = points.some(point => {
+      const start = new Date(point.dateFrom);
+      const end = new Date(point.dateTo);
+      return start <= now && now <= end;
+    });
+    const hasPastPoints = points.some(point => new Date(point.dateTo) < now);
+
+    return [
+      { type: 'everything', label: 'Everything', isDisabled: false },
+      { type: 'future', label: 'Future', isDisabled: !hasFuturePoints },
+      { type: 'present', label: 'Present', isDisabled: !hasPresentPoints },
+      { type: 'past', label: 'Past', isDisabled: !hasPastPoints }
+    ];
+  }
+
+  #computeSortStates() {
+    return [
+      { type: 'day', label: 'Day', isDisabled: false, isActive: true },
+      { type: 'event', label: 'Event', isDisabled: true, isActive: false },
+      { type: 'time', label: 'Time', isDisabled: false, isActive: false },
+      { type: 'price', label: 'Price', isDisabled: false, isActive: false },
+      { type: 'offer', label: 'Offers', isDisabled: true, isActive: false }
+    ];
   }
 
   #escKeyListener = null;
