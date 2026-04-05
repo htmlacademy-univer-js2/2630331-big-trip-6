@@ -100,6 +100,3 @@ export default class Presenter {
     }
   }
 }
-
-
-// надеюсь коммит сработает
