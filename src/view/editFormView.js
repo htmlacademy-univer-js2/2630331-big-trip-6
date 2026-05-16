@@ -1,4 +1,4 @@
-import View from './view.js';
+import AbstractStatefulView from './abstract-stateful-view.js';
 
 const EVENT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
@@ -13,29 +13,34 @@ function formatDateForInput(isoString) {
   return `${day}/${month}/${year} ${hours}:${mins}`;
 }
 
-export default class EditFormView extends View {
-  #point = null;
+export default class EditFormView extends AbstractStatefulView {
   #destination = null;
   #availableOffers = [];
   #formSubmitHandler = null;
   #rollupClickHandler = null;
 
   constructor(point, destination, availableOffers = []) {
-    super();
-    this.#point = point;
+    const initialState = {
+      type: point?.type || 'flight',
+      dateFrom: point?.dateFrom || new Date().toISOString(),
+      dateTo: point?.dateTo || new Date().toISOString(),
+      basePrice: point?.basePrice || '',
+      selectedOffers: [...(point?.offers || [])]
+    };
+
+    super(initialState);
+
     this.#destination = destination;
     this.#availableOffers = availableOffers;
   }
 
   get template() {
-    const type = this.#point?.type || 'flight';
-    const dateFrom = this.#point?.dateFrom || new Date().toISOString();
-    const dateTo = this.#point?.dateTo || new Date().toISOString();
-    const basePrice = this.#point?.basePrice || '';
+    const state = this.getState();
+    const { type, dateFrom, dateTo, basePrice, selectedOffers } = state;
+    
     const destinationName = this.#destination?.name || '';
     const destinationDescription = this.#destination?.description || '';
     const photos = this.#destination?.pictures || [];
-    const selectedOfferIds = this.#point?.offers || [];
 
     const typeOptionsHtml = EVENT_TYPES.map(eventType => `
       <div class="event__type-item">
@@ -48,7 +53,7 @@ export default class EditFormView extends View {
       <div class="event__available-offers">
         ${this.#availableOffers.map((offer) => `
           <div class="event__offer-selector">
-            <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1" type="checkbox" name="event-offer-${offer.id}" ${selectedOfferIds.includes(offer.id) ? 'checked' : ''}>
+            <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1" type="checkbox" name="event-offer-${offer.id}" ${selectedOffers.includes(offer.id) ? 'checked' : ''}>
             <label class="event__offer-label" for="event-offer-${offer.id}-1">
               <span class="event__offer-title">${offer.title}</span>
               &plus;&euro;&nbsp;
@@ -142,19 +147,70 @@ export default class EditFormView extends View {
     </form>`;
   }
 
+  /**
+   * Attach event listeners for all form inputs
+   * This is called automatically after rendering
+   */
+  attachEventListeners() {
+    const form = this.element;
+    if (!form) return;
+
+    // Handle event type changes
+    const typeInputs = form.querySelectorAll('input[name="event-type"]');
+    typeInputs.forEach(input => {
+      input.addEventListener('change', (evt) => {
+        this.updateState({ type: evt.target.value });
+      });
+    });
+
+    // Handle offer selection changes
+    const offerCheckboxes = form.querySelectorAll('.event__offer-checkbox');
+    offerCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', (evt) => {
+        const offerId = evt.target.name.replace('event-offer-', '');
+        const currentOffers = this.getStateValue('selectedOffers') || [];
+        
+        if (evt.target.checked) {
+          this.updateState({
+            selectedOffers: [...currentOffers, offerId]
+          });
+        } else {
+          this.updateState({
+            selectedOffers: currentOffers.filter(id => id !== offerId)
+          });
+        }
+      });
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', (evt) => {
+      evt.preventDefault();
+      if (this.#formSubmitHandler) {
+        this.#formSubmitHandler();
+      }
+    });
+
+    // Handle rollup (close) button
+    const rollupBtn = form.querySelector('.event__rollup-btn');
+    if (rollupBtn) {
+      rollupBtn.addEventListener('click', (evt) => {
+        evt.preventDefault();
+        if (this.#rollupClickHandler) {
+          this.#rollupClickHandler();
+        }
+      });
+    }
+  }
+
   setFormSubmitHandler(callback) {
     this.#formSubmitHandler = callback;
-    this.element.querySelector('form').addEventListener('submit', (evt) => {
-      evt.preventDefault();
-      this.#formSubmitHandler();
-    });
+    // Re-attach listeners to ensure they're set up
+    this.attachEventListeners();
   }
 
   setRollupClickHandler(callback) {
     this.#rollupClickHandler = callback;
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', (evt) => {
-      evt.preventDefault();
-      this.#rollupClickHandler();
-    });
+    // Re-attach listeners to ensure they're set up
+    this.attachEventListeners();
   }
 }
