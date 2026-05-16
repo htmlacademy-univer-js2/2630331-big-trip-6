@@ -1,103 +1,165 @@
-const CITIES = ['Amsterdam', 'Geneva', 'Chamonix', 'Paris', 'Brussels', 'Cologne', 'Lyon'];
+import dayjs from 'dayjs';
 
-const OFFER_TITLES = {
-  taxi: ['Order Uber', 'Rent a car', 'Book taxi online'],
-  bus: ['Travel by bus', 'Book online ticket', 'Select seat'],
-  train: ['Travel by train', 'Book tickets', 'Reserve berth'],
-  ship: ['Upgrade to first class cabin', 'Add breakfast', 'Buy excursion'],
-  drive: ['Rent a car', 'Add GPS', 'Book parking'],
-  flight: ['Add luggage', 'Switch to comfort class', 'Add meal'],
-  'check-in': ['Add hotel insurance', 'Book early check-in', 'Upgrade room'],
-  sightseeing: ['Book tickets', 'Add audio guide', 'Join walking tour'],
-  restaurant: ['Reserve table', 'Add wine pairing', 'Include dessert']
-};
-
-const DESCRIPTIONS = [
-  'This amazing destination offers breathtaking views and rich cultural heritage.',
-  'A vibrant city with excellent cuisine, art museums, and historic architecture.',
-  'Perfect for adventure seekers with stunning natural landscapes.',
-  'Known for its shopping district and world-class restaurants.',
-  'A charming medieval town with cobblestone streets and local charm.'
+const DESTINATIONS = [
+  {
+    id: '1',
+    name: 'Amsterdam',
+    description: 'Amsterdam is the capital and most populous city of the Netherlands.',
+    pictures: [
+      {
+        src: 'img/photos/1.jpg',
+        description: 'Amsterdam cityscape'
+      }
+    ]
+  },
+  {
+    id: '2',
+    name: 'Geneva',
+    description: 'Geneva is a city in Switzerland, at the southern tip of Lake Geneva.',
+    pictures: [
+      {
+        src: 'img/photos/2.jpg',
+        description: 'Geneva waterfront'
+      }
+    ]
+  },
+  {
+    id: '3',
+    name: 'Chamonix',
+    description: 'Chamonix is a French Alpine resort town.',
+    pictures: [
+      {
+        src: 'img/photos/3.jpg',
+        description: 'Chamonix mountains'
+      }
+    ]
+  },
+  {
+    id: '4',
+    name: 'Paris',
+    description: 'Paris is the capital and most populous city of France.',
+    pictures: [
+      {
+        src: 'img/photos/4.jpg',
+        description: 'Eiffel Tower'
+      }
+    ]
+  },
+  {
+    id: '5',
+    name: 'Brussels',
+    description: 'Brussels is the capital of Belgium.',
+    pictures: [
+      {
+        src: 'img/photos/5.jpg',
+        description: 'Grand Place'
+      }
+    ]
+  }
 ];
 
-const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
+const OFFERS = [
+  {
+    id: '1',
+    type: 'taxi',
+    title: 'Upgrade to a business class',
+    price: 120
+  },
+  {
+    id: '2',
+    type: 'bus',
+    title: 'Order meal',
+    price: 10
+  },
+  {
+    id: '3',
+    type: 'train',
+    title: 'Book a ticket',
+    price: 50
+  },
+  {
+    id: '4',
+    type: 'flight',
+    title: 'Add luggage',
+    price: 25
+  },
+  {
+    id: '5',
+    type: 'flight',
+    title: 'Switch to comfort class',
+    price: 200
+  },
+  {
+    id: '6',
+    type: 'check-in',
+    title: 'Add breakfast',
+    price: 15
+  },
+  {
+    id: '7',
+    type: 'sightseeing',
+    title: 'Book tickets',
+    price: 30
+  },
+  {
+    id: '8',
+    type: 'restaurant',
+    title: 'Order wine',
+    price: 18
+  },
+  {
+    id: '9',
+    type: 'drive',
+    title: 'Add insurance',
+    price: 50
+  },
+  {
+    id: '10',
+    type: 'ship',
+    title: 'Upgrade cabin',
+    price: 100
+  }
+];
+
+const EVENT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 function getRandomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomElements(array, count = 3) {
+  const shuffled = array.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
 }
 
-function generateDestinations() {
-  return CITIES.map((name, index) => ({
-    id: index + 1,
-    name,
-    description: getRandomElement(DESCRIPTIONS),
-    pictures: Array.from({ length: 5 }, (_, i) => ({
-      src: `https://loremflickr.com/248/152?random=${index * 5 + i + 1}`,
-      description: `${name} photo`
-    }))
-  }));
+function getRandomDate(start, end) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
-function generateOffers() {
-  const offers = [];
-  let id = 1;
+export function generateMockData() {
+  const start = dayjs().toDate();
+  const end = dayjs().add(7, 'day').toDate();
 
-  POINT_TYPES.forEach(type => {
-    const titles = OFFER_TITLES[type] || [];
-    titles.forEach((title, index) => {
-      offers.push({
-        id: id++,
-        type,
-        title,
-        price: getRandomInt(10, 150)
-      });
-    });
-  });
-
-  return offers;
-}
-
-function generateRoutePoints(destinations, offers, count = 3) {
   const points = [];
-
-  for (let i = 0; i < count; i++) {
-    const type = getRandomElement(POINT_TYPES);
-    const destination = getRandomElement(destinations);
-    const typeOffers = offers.filter(offer => offer.type === type);
-    const selectedOffers = typeOffers.slice(0, getRandomInt(0, Math.min(2, typeOffers.length))).map(o => o.id);
-
-    const dateFrom = new Date(2024, 2, 18 + i, 10 + i, 0);
-    const dateTo = new Date(dateFrom.getTime() + getRandomInt(1, 6) * 60 * 60 * 1000);
+  for (let i = 0; i < 5; i++) {
+    const dateFrom = dayjs(getRandomDate(start, end)).toISOString();
+    const dateTo = dayjs(dateFrom).add(Math.floor(Math.random() * 12) + 1, 'hour').toISOString();
 
     points.push({
-      id: i + 1,
-      type,
-      destinationId: destination.id,
-      basePrice: getRandomInt(50, 500),
-      dateFrom: dateFrom.toISOString(),
-      dateTo: dateTo.toISOString(),
-      offers: selectedOffers,
-      isFavorite: Math.random() > 0.7
+      id: String(i + 1),
+      type: getRandomElement(EVENT_TYPES),
+      destinationId: getRandomElement(DESTINATIONS).id,
+      dateFrom,
+      dateTo,
+      basePrice: Math.floor(Math.random() * 500) + 50,
+      isFavorite: Math.random() > 0.7,
+      offers: getRandomElements(OFFERS, 2).map(offer => offer.id)
     });
   }
 
-  return points;
-}
-
-function generateMockData() {
-  const destinations = generateDestinations();
-  const offers = generateOffers();
-  const points = generateRoutePoints(destinations, offers);
-
   return {
-    destinations,
-    offers,
-    points
+    points,
+    destinations: DESTINATIONS,
+    offers: OFFERS
   };
 }
-
-export { generateMockData };

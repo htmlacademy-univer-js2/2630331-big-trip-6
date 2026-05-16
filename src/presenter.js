@@ -1,18 +1,17 @@
 import Filter from './view/filter.js';
 import Sort from './view/sort.js';
 import TripEventsList from './view/tripEventsList.js';
-import RoutePointView from './view/routePointView.js';
-import EditFormView from './view/editFormView.js';
 import EmptyListView from './view/emptyListView.js';
-import { render, RenderPosition, replace } from './render.js';
+import PointPresenter from './presenter/point-presenter.js';
+import { render, RenderPosition } from './render.js';
 
 export default class Presenter {
   #tripEventsList = new TripEventsList();
   #model = null;
-  #pointViewMap = new Map();
-  #editFormViewMap = new Map();
+  #pointPresenters = new Map();
   #filterComponent = null;
   #sortComponent = null;
+  #currentEditingPointId = null;
 
   constructor(model) {
     this.#model = model;
@@ -56,47 +55,58 @@ export default class Presenter {
   }
 
   #renderPoint(point, container) {
-    const destination = this.#model.getDestinationById(point.destinationId);
-    const pointOffers = this.#model.getOffersByIds(point.offers);
-    const availableOffers = this.#model.getOffersByType(point.type);
+    const destinations = this.#buildDestinationsMap();
+    const offers = this.#buildOffersMap();
 
-    const routePointView = new RoutePointView(point, destination, pointOffers);
-    const editFormView = new EditFormView(point, destination, availableOffers);
+    const pointPresenter = new PointPresenter(
+      container,
+      point,
+      destinations,
+      offers,
+      this.#handleDataChange.bind(this),
+      this.#handleModeChange.bind(this)
+    );
 
-    this.#pointViewMap.set(point.id, routePointView);
-    this.#editFormViewMap.set(point.id, editFormView);
-
-    const handleEditClick = () => {
-      replace(editFormView, routePointView);
-      this.#addEscKeyListener(point.id, () => this.#closeEditForm(point.id, container));
-    };
-
-    const handleFormSubmit = () => {
-      replace(routePointView, editFormView);
-      this.#removeEscKeyListener();
-    };
-
-    const handleRollupClick = () => {
-      replace(routePointView, editFormView);
-      this.#removeEscKeyListener();
-    };
-
-    routePointView.setEditClickHandler(handleEditClick);
-    editFormView.setFormSubmitHandler(handleFormSubmit);
-    editFormView.setRollupClickHandler(handleRollupClick);
-
-    render(routePointView, container);
+    pointPresenter.init();
+    this.#pointPresenters.set(point.id, pointPresenter);
   }
 
-  #closeEditForm(pointId, container) {
-    const routePointView = this.#pointViewMap.get(pointId);
-    const editFormView = this.#editFormViewMap.get(pointId);
+  #handleDataChange(point) {
+    // Сохраняем изменения в модель
+    this.#model.updatePoint(point);
+  }
 
-    if (routePointView && editFormView) {
-      replace(routePointView, editFormView);
+  #handleModeChange(pointId) {
+    // Закрываем форму редактирования о другой точке, если она открыта
+    if (this.#currentEditingPointId !== null && this.#currentEditingPointId !== pointId) {
+      const prevPresenter = this.#pointPresenters.get(this.#currentEditingPointId);
+      if (prevPresenter) {
+        prevPresenter.resetMode();
+      }
     }
+    this.#currentEditingPointId = pointId;
+  }
 
-    this.#removeEscKeyListener();
+  #buildDestinationsMap() {
+    const destinations = new Map();
+    const allDestinations = this.#model.getDestinations();
+    
+    allDestinations.forEach(dest => {
+      destinations.set(dest.id, dest);
+    });
+    
+    return destinations;
+  }
+
+  #buildOffersMap() {
+    const offers = new Map();
+    const allOffers = this.#model.getOffers();
+    
+    allOffers.forEach(offer => {
+      offers.set(offer.id, offer);
+    });
+    
+    return offers;
   }
 
   #computeFilterStates(points) {
@@ -127,27 +137,5 @@ export default class Presenter {
       { type: 'offer', label: 'Offers', isDisabled: true, isActive: false }
     ];
   }
-
-  #escKeyListener = null;
-
-  #addEscKeyListener(pointId, callback) {
-    if (this.#escKeyListener) {
-      document.removeEventListener('keydown', this.#escKeyListener);
-    }
-
-    this.#escKeyListener = (evt) => {
-      if (evt.key === 'Escape') {
-        callback();
-      }
-    };
-
-    document.addEventListener('keydown', this.#escKeyListener);
-  }
-
-  #removeEscKeyListener() {
-    if (this.#escKeyListener) {
-      document.removeEventListener('keydown', this.#escKeyListener);
-      this.#escKeyListener = null;
-    }
-  }
 }
+
