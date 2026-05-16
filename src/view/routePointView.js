@@ -36,6 +36,7 @@ export default class RoutePointView extends View {
   #destination = null;
   #offers = null;
   #editClickHandler = null;
+  #favoriteClickHandler = null;
 
   constructor(point, destination, offers = []) {
     super();
@@ -100,6 +101,13 @@ export default class RoutePointView extends View {
     this.#editClickHandler = callback;
     this.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
       this.#editClickHandler();
+    });
+  }
+
+  setFavoriteClickHandler(callback) {
+    this.#favoriteClickHandler = callback;
+    this.element.querySelector('.event__favorite-btn').addEventListener('click', () => {
+      this.#favoriteClickHandler();
     });
   }
 }
