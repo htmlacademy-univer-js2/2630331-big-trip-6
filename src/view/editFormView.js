@@ -1,16 +1,12 @@
 import AbstractStatefulView from './abstract-stateful-view.js';
+import dayjs from 'dayjs';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 const EVENT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 function formatDateForInput(isoString) {
-  const date = new Date(isoString);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear()).slice(-2);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const mins = String(date.getMinutes()).padStart(2, '0');
-
-  return `${day}/${month}/${year} ${hours}:${mins}`;
+  return dayjs(isoString).format('DD/MM/YY HH:mm');
 }
 
 export default class EditFormView extends AbstractStatefulView {
@@ -181,6 +177,44 @@ export default class EditFormView extends AbstractStatefulView {
         }
       });
     });
+
+    // Setup flatpickr for date/time inputs
+    const startTimeInput = form.querySelector('#event-start-time-1');
+    const endTimeInput = form.querySelector('#event-end-time-1');
+    const priceInput = form.querySelector('#event-price-1');
+
+    if (startTimeInput) {
+      flatpickr(startTimeInput, {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: dayjs(this.getStateValue('dateFrom')).toDate(),
+        onChange: (selectedDates) => {
+          if (selectedDates[0]) {
+            this.updateState({ dateFrom: selectedDates[0].toISOString() });
+          }
+        }
+      });
+    }
+
+    if (endTimeInput) {
+      flatpickr(endTimeInput, {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: dayjs(this.getStateValue('dateTo')).toDate(),
+        onChange: (selectedDates) => {
+          if (selectedDates[0]) {
+            this.updateState({ dateTo: selectedDates[0].toISOString() });
+          }
+        }
+      });
+    }
+
+    // Handle price input changes
+    if (priceInput) {
+      priceInput.addEventListener('change', (evt) => {
+        this.updateState({ basePrice: evt.target.value });
+      });
+    }
 
     // Handle form submission
     form.addEventListener('submit', (evt) => {

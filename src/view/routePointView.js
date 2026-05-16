@@ -1,21 +1,18 @@
 import View from './view.js';
+import dayjs from 'dayjs';
 
 function formatDate(isoString) {
-  const date = new Date(isoString);
-  const options = { month: 'short', day: '2-digit' };
-  return date.toLocaleDateString('en-US', options).toUpperCase();
+  return dayjs(isoString).format('MMM DD').toUpperCase();
 }
 
 function formatTime(isoString) {
-  const date = new Date(isoString);
-  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return dayjs(isoString).format('HH:mm');
 }
 
 function calculateDuration(dateFrom, dateTo) {
-  const from = new Date(dateFrom);
-  const to = new Date(dateTo);
-  const diffMs = to - from;
-  const diffMins = Math.round(diffMs / 60000);
+  const from = dayjs(dateFrom);
+  const to = dayjs(dateTo);
+  const diffMins = to.diff(from, 'minute');
 
   if (diffMins < 60) {
     return `${diffMins}M`;
@@ -25,10 +22,10 @@ function calculateDuration(dateFrom, dateTo) {
   const mins = diffMins % 60;
 
   if (mins === 0) {
-    return `${hours}H`;
+    return `${String(hours).padStart(2, '0')}H`;
   }
 
-  return `${hours}H ${mins}M`;
+  return `${String(hours).padStart(2, '0')}H ${String(mins).padStart(2, '0')}M`;
 }
 
 export default class RoutePointView extends View {
