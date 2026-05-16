@@ -10,6 +10,7 @@ const DEFAULT_SORTS = [
 
 export default class Sort extends View {
   #sorts = [];
+  #sortTypeChangeHandler = null;
 
   constructor(sorts = DEFAULT_SORTS) {
     super();
@@ -37,5 +38,15 @@ export default class Sort extends View {
     return `<form class="trip-events__trip-sort  trip-sort">
       ${sortsHtml}
     </form>`;
+  }
+
+  setSortTypeChangeHandler(callback) {
+    this.#sortTypeChangeHandler = callback;
+    this.element.querySelectorAll('.trip-sort__input').forEach(input => {
+      input.addEventListener('change', (evt) => {
+        const sortType = evt.target.id.replace('sort-', '');
+        this.#sortTypeChangeHandler(sortType);
+      });
+    });
   }
 }

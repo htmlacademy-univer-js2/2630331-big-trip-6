@@ -12,6 +12,9 @@ export default class Presenter {
   #filterComponent = null;
   #sortComponent = null;
   #currentEditingPointId = null;
+  #currentSortType = 'day';
+  #allPoints = [];
+  #tripListContainer = null;
 
   constructor(model) {
     this.#model = model;
@@ -44,14 +47,14 @@ export default class Presenter {
     const sortStates = this.#computeSortStates();
     this.#sortComponent = new Sort(sortStates);
     render(this.#sortComponent, eventsSection, RenderPosition.BEFOREEND);
+    this.#sortComponent.setSortTypeChangeHandler(this.#handleSortTypeChange.bind(this));
 
     render(this.#tripEventsList, eventsSection, RenderPosition.BEFOREEND);
 
-    const tripList = document.querySelector('.trip-events__list');
-
-    points.forEach(point => {
-      this.#renderPoint(point, tripList);
-    });
+    this.#tripListContainer = document.querySelector('.trip-events__list');
+    this.#allPoints = [...points];
+    
+    this.#renderPointsList(points);
   }
 
   #renderPoint(point, container) {
@@ -87,25 +90,83 @@ export default class Presenter {
     this.#currentEditingPointId = pointId;
   }
 
+  #handleSortTypeChange(sortType) {
+    this.#currentSortType = sortType;
+    this.#rerenderPointsList();
+  }
+
+  #renderPointsList(points) {
+    points.forEach(point => {
+      this.#renderPoint(point, this.#tripListContainer);
+    });
+  }
+
+  #rerenderPointsList() {
+    const sortedPoints = this.#sortPoints(this.#allPoints);
+    
+    // Лучше переиспользовать существующий контейнер
+    this.#tripListContainer.querySelectorAll('.event').forEach(el => {
+      el.remove();
+    });
+
+    this.#pointPresenters.forEach(presenter => {
+      presenter.destroy();
+    });
+    this.#pointPresenters.clear();
+
+    this.#renderPointsList(sortedPoints);
+  }
+
+  #sortPoints(points) {
+    const sortedPoints = [...points];
+
+    switch (this.#currentSortType) {
+      case 'day':
+        return sortedPoints.sort((a, b) => {
+          const dateA = new Date(a.dateFrom);
+          const dateB = new Date(b.dateFrom);
+          return dateA - dateB;
+        });
+
+      case 'time':
+        return sortedPoints.sort((a, b) => {
+          const durationA = new Date(a.dateTo) - new Date(a.dateFrom);
+          const durationB = new Date(b.dateTo) - new Date(b.dateFrom);
+          return durationB - durationA;
+        });
+
+      case 'price':
+        return sortedPoints.sort((a, b) => b.basePrice - a.basePrice);
+
+      case 'event':
+      case 'offer':
+        // Эти сортировки отключены в UI
+        return sortedPoints;
+
+      default:
+        return sortedPoints;
+    }
+  }
+
   #buildDestinationsMap() {
     const destinations = new Map();
     const allDestinations = this.#model.getDestinations();
-    
+
     allDestinations.forEach(dest => {
       destinations.set(dest.id, dest);
     });
-    
+
     return destinations;
   }
 
   #buildOffersMap() {
     const offers = new Map();
     const allOffers = this.#model.getOffers();
-    
+
     allOffers.forEach(offer => {
       offers.set(offer.id, offer);
     });
-    
+
     return offers;
   }
 

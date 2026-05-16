@@ -127,6 +127,12 @@ export default class PointPresenter {
 
   destroy() {
     this.#removeEscKeyListener();
+    if (this.#routePointView) {
+      this.#routePointView.getElement().remove();
+    }
+    if (this.#editFormView) {
+      this.#editFormView.getElement().remove();
+    }
   }
 
   resetMode() {
