@@ -33,7 +33,7 @@ export default class EditFormView extends AbstractStatefulView {
   get template() {
     const state = this.getState();
     const { type, dateFrom, dateTo, basePrice, selectedOffers } = state;
-    
+
     const destinationName = this.#destination?.name || '';
     const destinationDescription = this.#destination?.description || '';
     const photos = this.#destination?.pictures || [];
@@ -165,7 +165,7 @@ export default class EditFormView extends AbstractStatefulView {
       checkbox.addEventListener('change', (evt) => {
         const offerId = evt.target.name.replace('event-offer-', '');
         const currentOffers = this.getStateValue('selectedOffers') || [];
-        
+
         if (evt.target.checked) {
           this.updateState({
             selectedOffers: [...currentOffers, offerId]
