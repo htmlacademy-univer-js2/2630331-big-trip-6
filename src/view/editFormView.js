@@ -247,4 +247,58 @@ export default class EditFormView extends AbstractStatefulView {
     // Re-attach listeners to ensure they're set up
     this.attachEventListeners();
   }
+
+  /**
+   * Apply shake animation to the form
+   * Used to indicate an error to the user
+   */
+  shake() {
+    this.element.classList.add('shake');
+    setTimeout(() => {
+      this.element.classList.remove('shake');
+    }, 600);
+  }
+
+  /**
+   * Set saving state on the form
+   * Disables inputs/buttons and updates save button text
+   * @param {boolean} isSaving - True to enable saving state, false to disable
+   */
+  setSaving(isSaving) {
+    const saveBtn = this.element.querySelector('[type="submit"]');
+    if (saveBtn) {
+      saveBtn.disabled = isSaving;
+      saveBtn.textContent = isSaving ? 'Saving...' : 'Save';
+    }
+    this._setDisabled(isSaving);
+  }
+
+  /**
+   * Set deleting state on the form
+   * Disables inputs/buttons and updates delete button text
+   * @param {boolean} isDeleting - True to enable deleting state, false to disable
+   */
+  setDeleting(isDeleting) {
+    const deleteBtn = this.element.querySelector('.event__rollup-btn');
+    if (deleteBtn) {
+      deleteBtn.disabled = isDeleting;
+      deleteBtn.textContent = isDeleting ? 'Deleting...' : '';
+    }
+    this._setDisabled(isDeleting);
+  }
+
+  /**
+   * Disable/enable all form inputs and buttons
+   * @private
+   * @param {boolean} state - True to disable, false to enable
+   */
+  _setDisabled(state) {
+    const form = this.element;
+    if (!form) return;
+
+    form.querySelectorAll('input, button, textarea')
+      .forEach(el => {
+        el.disabled = state;
+      });
+  }
 }

@@ -61,6 +61,41 @@ export default class ApiService {
   }
 
   /**
+   * Create a new waypoint on server
+   * @param {Object} point - Point object in app format (without id)
+   * @returns {Promise<Object>} Created point in client format with server-assigned id
+   */
+  async addPoint(point) {
+    const url = `${this.#baseUrl}/points`;
+    const serverPoint = adaptToServer(point);
+    const serverResponse = await this.#fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(serverPoint)
+    });
+    return adaptToClient(serverResponse);
+  }
+
+  /**
+   * Delete a waypoint from server
+   * @param {number|string} pointId - ID of point to delete
+   * @returns {Promise<void>} Resolves on success
+   */
+  async deletePoint(pointId) {
+    const url = `${this.#baseUrl}/points/${pointId}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': this.#authorization
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete: ${response.status} ${response.statusText}`);
+    }
+  }
+
+  /**
    * Get all destinations from server
    * @returns {Promise<Array>} Array of destination objects
    */
