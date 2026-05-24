@@ -184,6 +184,14 @@ export default class PointsModel {
    * Register observer for data changes
    * @param {Function} callback - Called when data changes
    */
+  addObserver(callback) {
+    this.subscribe(callback);
+  }
+
+  /**
+   * Register observer for data changes
+   * @param {Function} callback - Called when data changes
+   */
   subscribe(callback) {
     if (typeof callback === 'function') {
       this.#observers.push(callback);
@@ -196,6 +204,54 @@ export default class PointsModel {
    */
   unsubscribe(callback) {
     this.#observers = this.#observers.filter(obs => obs !== callback);
+  }
+
+  /**
+   * Update point with server sync
+   * Calls API to update on server, then updates local state
+   * @param {Object} updatedPoint - Point with updated data
+   * @param {ApiService} apiService - API service instance
+   * @returns {Promise<Object>} Updated point or rejects on error
+   * @throws {Error} If server update fails
+   */
+  async updateWaypoint(updatedPoint, apiService) {
+    if (!updatedPoint || !updatedPoint.id) {
+      throw new Error('Point must have an id');
+    }
+
+    if (!apiService) {
+      throw new Error('API service is required for server sync');
+    }
+
+    try {
+      // First, call API to update on server
+      const { adaptToClient } = await import('../api.js');
+      const serverResponse = await apiService.updatePoint(updatedPoint);
+
+      // Convert server response to client format
+      const adaptedPoint = adaptToClient(serverResponse);
+
+      // Now update local data with server response
+      const index = this.#points.findIndex(p => p.id === adaptedPoint.id);
+      if (index === -1) {
+        throw new Error(`Point with id ${adaptedPoint.id} not found in local data`);
+      }
+
+      this.#points[index] = {
+        ...this.#points[index],
+        ...adaptedPoint,
+        id: adaptedPoint.id
+      };
+
+      // Notify observers of successful update
+      this.#notifyObservers();
+
+      return JSON.parse(JSON.stringify(this.#points[index]));
+    } catch (error) {
+      // Do NOT update local data if server update fails
+      console.error('Failed to update point on server:', error);
+      throw error;
+    }
   }
 
   /**
