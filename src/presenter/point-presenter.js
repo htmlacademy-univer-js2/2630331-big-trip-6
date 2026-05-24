@@ -7,6 +7,8 @@ export default class PointPresenter {
   #point = null;
   #destinations = null;
   #offers = null;
+  #model = null;
+  #apiService = null;
   #onDataChange = null;
   #onModeChange = null;
 
@@ -15,13 +17,15 @@ export default class PointPresenter {
   #mode = 'default'; // 'default' or 'edit'
   #escKeyHandler = null;
 
-  constructor(container, point, destinations, offers, onDataChange, onModeChange) {
+  constructor(container, point, destinations, offers, onDataChange, onModeChange, model, apiService) {
     this.#container = container;
     this.#point = point;
     this.#destinations = destinations;
     this.#offers = offers;
     this.#onDataChange = onDataChange;
     this.#onModeChange = onModeChange;
+    this.#model = model;
+    this.#apiService = apiService;
   }
 
   init() {
@@ -67,7 +71,7 @@ export default class PointPresenter {
 
   #setEditFormHandlers() {
     this.#editFormView.setFormSubmitHandler(() => this.#handleFormSubmit());
-    this.#editFormView.setRollupClickHandler(() => this.#switchToDefaultMode());
+    this.#editFormView.setRollupClickHandler(() => this.#handleRollupClick());
   }
 
   #switchToEditMode() {
@@ -83,10 +87,66 @@ export default class PointPresenter {
     this.#removeEscKeyListener();
   }
 
-  #handleFormSubmit() {
-    this.#switchToDefaultMode();
-    // Здесь можно добавить логику сохранения данных
-    this.#onDataChange(this.#point);
+  async #handleFormSubmit() {
+    // Get the updated data from the form view
+    const formState = this.#editFormView.getState();
+
+    // Merge form state with original point data
+    const updatedPoint = {
+      ...this.#point,
+      type: formState.type,
+      dateFrom: formState.dateFrom,
+      dateTo: formState.dateTo,
+      basePrice: formState.basePrice,
+      offers: new Set(formState.selectedOffers || [])
+    };
+
+    // Show saving state
+    this.#editFormView.setSaving(true);
+
+    try {
+      // Call the model with async API sync
+      await this.#model.updateWaypoint(updatedPoint, this.#apiService);
+
+      // Update internal point reference
+      this.#point = updatedPoint;
+
+      // Switch back to default view
+      this.#switchToDefaultMode();
+    } catch (error) {
+      console.error('Failed to save point:', error);
+      // Show error feedback
+      this.#editFormView.shake();
+      this.#editFormView.setSaving(false);
+    }
+  }
+
+  #handleRollupClick() {
+    if (this.#mode === 'edit') {
+      // In edit mode: delete the point
+      this.#handleDeleteClick();
+    } else {
+      // In default mode: just close
+      this.#switchToDefaultMode();
+    }
+  }
+
+  async #handleDeleteClick() {
+    // Show deleting state
+    this.#editFormView.setDeleting(true);
+
+    try {
+      // Call the model with async API sync
+      await this.#model.deleteWaypoint(this.#point.id, this.#apiService);
+
+      // Point was deleted, remove it from DOM
+      this.destroy();
+    } catch (error) {
+      console.error('Failed to delete point:', error);
+      // Show error feedback
+      this.#editFormView.shake();
+      this.#editFormView.setDeleting(false);
+    }
   }
 
   #handleFavoriteClick() {
@@ -139,5 +199,9 @@ export default class PointPresenter {
     if (this.#mode === 'edit') {
       this.#switchToDefaultMode();
     }
+  }
+
+  getPointId() {
+    return this.#point.id;
   }
 }

@@ -224,8 +224,10 @@ export default class PointsModel {
     }
 
     try {
-      // First, call API to update on server
+      // Import adapter inside the method to avoid circular dependencies
       const { adaptToClient } = await import('../api.js');
+
+      // First, call API to update on server
       const serverResponse = await apiService.updatePoint(updatedPoint);
 
       // Convert server response to client format
@@ -252,6 +254,92 @@ export default class PointsModel {
       console.error('Failed to update point on server:', error);
       throw error;
     }
+  }
+
+  /**
+   * Add a new point with server sync
+   * Calls API to create on server, then inserts into local array
+   * @param {Object} newPoint - Point data without id
+   * @param {ApiService} apiService - API service instance
+   * @returns {Promise<Object>} Created point with server-assigned id
+   * @throws {Error} If server creation fails
+   */
+  async addWaypoint(newPoint, apiService) {
+    if (!newPoint) {
+      throw new Error('Point must be provided');
+    }
+
+    if (!apiService) {
+      throw new Error('API service is required for server sync');
+    }
+
+    try {
+      // Call API to create point on server
+      const createdPoint = await apiService.addPoint(newPoint);
+
+      // Insert into local array sorted by date
+      this.#points.push(createdPoint);
+      this.#sortPointsByDate();
+
+      // Notify observers of successful creation
+      this.#notifyObservers();
+
+      return JSON.parse(JSON.stringify(createdPoint));
+    } catch (error) {
+      // Do NOT update local data if server creation fails
+      console.error('Failed to create point on server:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a point with server sync
+   * Calls API to delete on server, then removes from local array
+   * @param {number|string} pointId - ID of point to delete
+   * @param {ApiService} apiService - API service instance
+   * @returns {Promise<void>} Resolves on success
+   * @throws {Error} If server deletion fails
+   */
+  async deleteWaypoint(pointId, apiService) {
+    if (!pointId) {
+      throw new Error('Point ID must be provided');
+    }
+
+    if (!apiService) {
+      throw new Error('API service is required for server sync');
+    }
+
+    try {
+      // Call API to delete point from server
+      await apiService.deletePoint(pointId);
+
+      // Remove from local array
+      const index = this.#points.findIndex(p => p.id === pointId);
+      if (index === -1) {
+        throw new Error(`Point with id ${pointId} not found in local data`);
+      }
+
+      this.#points.splice(index, 1);
+
+      // Notify observers of successful deletion
+      this.#notifyObservers();
+    } catch (error) {
+      // Do NOT update local data if server deletion fails
+      console.error('Failed to delete point on server:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sort points array by date (dateFrom)
+   * @private
+   */
+  #sortPointsByDate() {
+    this.#points.sort((a, b) => {
+      const dateA = new Date(a.dateFrom).getTime();
+      const dateB = new Date(b.dateFrom).getTime();
+      return dateA - dateB;
+    });
   }
 
   /**

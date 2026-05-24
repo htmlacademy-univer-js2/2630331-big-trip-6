@@ -67,7 +67,9 @@ export default class Presenter {
       destinationsMap,
       offersMap,
       (updatedPoint) => this.#handlePointChange(updatedPoint),
-      (pointId) => this.#handleModeChange(pointId)
+      (pointId) => this.#handleModeChange(pointId),
+      this.#model,
+      this.#apiService
     );
 
     pointPresenter.init();
@@ -75,12 +77,9 @@ export default class Presenter {
   }
 
   #handlePointChange(updatedPoint) {
-    // Call model with API sync
-    this.#model.updateWaypoint(updatedPoint, this.#apiService)
-      .catch(error => {
-        console.error('Failed to save point:', error);
-        alert('Failed to save changes. Please try again.');
-      });
+    // This is called for favorite toggle or other non-async updates
+    // For form submit, the PointPresenter handles it directly
+    this.#model.updatePoint(updatedPoint);
   }
 
   #handleModeChange(pointId) {
