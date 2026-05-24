@@ -2,6 +2,8 @@ import Filter from './view/filter.js';
 import Sort from './view/sort.js';
 import PointPresenter from './presenter/point-presenter.js';
 import TripEventsList from './view/tripEventsList.js';
+import EmptyListView from './view/emptyListView.js';
+import PointPresenter from './presenter/point-presenter.js';
 import { render, RenderPosition } from './render.js';
 
 export default class Presenter {
@@ -22,7 +24,7 @@ export default class Presenter {
   }
 
   init() {
-    const filterContainer = document.querySelector('.trip-controls__filters');
+    const points = this.#model.getPoints();
     const eventsSection = document.querySelector('.trip-events');
 
     // Clear loading state
