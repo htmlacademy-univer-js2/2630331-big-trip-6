@@ -1,43 +1,77 @@
-import View from './view.js';
+import { FilterType } from '../utils/filter-utils.js';
 
-const DEFAULT_FILTERS = [
-  { type: 'everything', label: 'Everything', isDisabled: false },
-  { type: 'future', label: 'Future', isDisabled: false },
-  { type: 'present', label: 'Present', isDisabled: false },
-  { type: 'past', label: 'Past', isDisabled: false }
-];
-
-export default class Filter extends View {
-  #filters = [];
-  #activeFilter = 'everything';
-
-  constructor(filters = DEFAULT_FILTERS, activeFilter = 'everything') {
-    super();
-    this.#filters = filters;
-    this.#activeFilter = activeFilter;
+export default class Filter {
+  constructor() {
+    this.element = null;
+    this.disabledFilters = {};
   }
 
-  get template() {
-    const filtersHtml = this.#filters.map(filter => `
-      <div class="trip-filters__filter">
-        <input
-          id="filter-${filter.type}"
-          class="trip-filters__filter-input  visually-hidden"
-          type="radio"
-          name="trip-filter"
-          value="${filter.type}"
-          ${filter.isDisabled ? 'disabled' : ''}
-          ${this.#activeFilter === filter.type ? 'checked' : ''}
-        >
-        <label class="trip-filters__filter-label" for="filter-${filter.type}">
-          ${filter.label}
-        </label>
-      </div>
-    `).join('');
+  getTemplate() {
+    const filters = [
+      { id: 'everything', value: FilterType.EVERYTHING, label: 'Everything' },
+      { id: 'future', value: FilterType.FUTURE, label: 'Future' },
+      { id: 'present', value: FilterType.PRESENT, label: 'Present' },
+      { id: 'past', value: FilterType.PAST, label: 'Past' }
+    ];
+
+    const filterHtml = filters.map(filter => {
+      const isDisabled = this.disabledFilters[filter.value] ? 'disabled' : '';
+      return `
+        <div class="trip-filters__filter">
+          <input 
+            id="filter-${filter.id}" 
+            class="trip-filters__filter-input  visually-hidden" 
+            type="radio" 
+            name="trip-filter" 
+            value="${filter.value}"
+            ${filter.value === FilterType.PAST ? 'checked' : ''}
+            ${isDisabled}
+          >
+          <label class="trip-filters__filter-label" for="filter-${filter.id}">${filter.label}</label>
+        </div>
+      `;
+    }).join('');
 
     return `<form class="trip-filters">
-      ${filtersHtml}
+      ${filterHtml}
       <button class="visually-hidden" type="submit">Accept filter</button>
     </form>`;
+  }
+
+  getElement() {
+    if (!this.element) {
+      const div = document.createElement('div');
+      div.innerHTML = this.getTemplate();
+      this.element = div.firstElementChild;
+    }
+    return this.element;
+  }
+
+  /**
+   * Update disabled state for filters and re-render
+   * @param {Object} disabledFilters - Object with filter type as key and boolean as value
+   */
+  updateDisabledFilters(disabledFilters) {
+    this.disabledFilters = disabledFilters;
+    
+    if (this.element) {
+      const newElement = document.createElement('div');
+      newElement.innerHTML = this.getTemplate();
+      const newFilterForm = newElement.firstElementChild;
+      this.element.replaceWith(newFilterForm);
+      this.element = newFilterForm;
+    }
+  }
+
+  /**
+   * Set filter change handler
+   * @param {Function} callback - Called with filter value when user selects filter
+   */
+  setFilterChangeHandler(callback) {
+    this.getElement().addEventListener('change', (evt) => {
+      if (evt.target.name === 'trip-filter') {
+        callback(evt.target.value);
+      }
+    });
   }
 }

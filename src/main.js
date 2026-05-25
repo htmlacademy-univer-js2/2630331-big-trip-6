@@ -1,4 +1,5 @@
 import Presenter from './presenter.js';
+import TripInfoPresenter from './presenter/trip-info-presenter.js';
 import PointsModel from './model/points-model.js';
 import ApiService, { adaptToClient } from './api.js';
 
@@ -40,9 +41,16 @@ async function initApp() {
     // Create model with loaded data
     const model = new PointsModel(adaptedPoints, destinationsData, offersData);
 
-    // Create presenter and initialize with model and API
+    // Create main presenter and initialize with model and API
     const presenter = new Presenter(model, apiService);
     presenter.init();
+
+    // Create trip info presenter and initialize
+    const tripInfoPresenter = new TripInfoPresenter(
+      document.querySelector('.trip-main'),
+      model
+    );
+    tripInfoPresenter.init();
   } catch (error) {
     console.error('Failed to load application:', error);
     showErrorState('Failed to load trip data. Please try again later.');
