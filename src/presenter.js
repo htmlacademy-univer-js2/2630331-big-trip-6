@@ -3,6 +3,7 @@ import Sort from './view/sort.js';
 import PointPresenter from './presenter/point-presenter.js';
 import TripEventsList from './view/tripEventsList.js';
 import { render, RenderPosition } from './render.js';
+import { getFilterStats, getDisabledFilters } from './utils/filter-utils.js';
 
 export default class Presenter {
   #model;
@@ -12,6 +13,7 @@ export default class Presenter {
   #tripEventsList;
   #pointPresenters = [];
   #currentOpenPointId = null;
+  #filterContainer;
 
   constructor(model, apiService) {
     this.#model = model;
@@ -22,14 +24,16 @@ export default class Presenter {
   }
 
   init() {
-    const filterContainer = document.querySelector('.trip-controls__filters');
+    this.#filterContainer = document.querySelector('.trip-controls__filters');
     const eventsSection = document.querySelector('.trip-events');
 
     // Clear loading state
     eventsSection.innerHTML = '';
 
     // Render UI components
-    render(this.#filter, filterContainer);
+    render(this.#filter, this.#filterContainer);
+    this.#updateFilterStates();
+    
     render(this.#sort, eventsSection, RenderPosition.BEFOREEND);
     render(this.#tripEventsList, eventsSection, RenderPosition.BEFOREEND);
 
@@ -93,7 +97,17 @@ export default class Presenter {
     this.#currentOpenPointId = pointId;
   }
 
+  #updateFilterStates() {
+    const points = this.#model.getPoints();
+    const filterStats = getFilterStats(points);
+    const disabledFilters = getDisabledFilters(filterStats);
+    this.#filter.updateDisabledFilters(disabledFilters);
+  }
+
   #onModelChange() {
+    // Update filter states
+    this.#updateFilterStates();
+    
     // Refresh the entire list when model changes
     // This is a simple approach - in a real app, you might do partial updates
     this.#pointPresenters.forEach(p => p.destroy?.());
