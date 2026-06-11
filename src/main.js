@@ -4,7 +4,7 @@ import PointsModel from './model/points-model.js';
 import ApiService, { adaptToClient } from './api.js';
 
 // API Configuration
-const API_BASE_URL = 'https://21.objects.pages.academy/big-trip';
+const API_BASE_URL = 'https://23.objects.htmlacademy.pro/big-trip';
 const AUTHORIZATION = 'Basic ' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 // Show loading state
@@ -21,9 +21,9 @@ function showErrorState(message = 'Failed to load data') {
 
 // Initialize application
 async function initApp() {
+  // Show loading placeholder FIRST
+  showLoadingState();
   try {
-    // Show loading placeholder
-    showLoadingState();
 
     // Create API service
     const apiService = new ApiService(API_BASE_URL, AUTHORIZATION);
@@ -53,7 +53,7 @@ async function initApp() {
     tripInfoPresenter.init();
   } catch (error) {
     console.error('Failed to load application:', error);
-    showErrorState('Failed to load trip data. Please try again later.');
+    showErrorState('Failed to load latest route information.');
   }
 }
 

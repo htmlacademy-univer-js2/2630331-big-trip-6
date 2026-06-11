@@ -43,3 +43,16 @@ export function getDisabledFilters(stats) {
   });
   return disabled;
 }
+
+export function filterPoints(points, filterType, now = new Date()) {
+  switch(filterType) {
+    case FilterType.FUTURE:
+      return points.filter(p => new Date(p.dateFrom) >= now);
+    case FilterType.PRESENT:
+      return points.filter(p => new Date(p.dateFrom) <= now && new Date(p.dateTo) >= now);
+    case FilterType.PAST:
+      return points.filter(p => new Date(p.dateTo) <= now);
+    default:
+      return points;
+  }
+}

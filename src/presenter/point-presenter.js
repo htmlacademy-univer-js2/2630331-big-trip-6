@@ -11,10 +11,9 @@ export default class PointPresenter {
   #apiService = null;
   #onDataChange = null;
   #onModeChange = null;
-
   #routePointView = null;
   #editFormView = null;
-  #mode = 'default'; // 'default' or 'edit'
+  #mode = 'default';
   #escKeyHandler = null;
 
   constructor(container, point, destinations, offers, onDataChange, onModeChange, model, apiService) {
@@ -29,179 +28,162 @@ export default class PointPresenter {
   }
 
   init() {
-    this.#renderPoint();
-  }
-
-  #renderPoint() {
-    const destination = this.#destinations.get(this.#point.destinationId);
-    const pointOffers = Array.from(this.#point.offers || [])
-      .map(offerId => this.#offers.get(offerId))
-      .filter(Boolean);
-    const availableOffers = Array.from(this.#offers.values())
-      .filter(offer => offer.type === this.#point.type);
-
-    const prevPointView = this.#routePointView;
-    const prevEditFormView = this.#editFormView;
-
-    this.#routePointView = new RoutePointView(this.#point, destination, pointOffers);
-    this.#editFormView = new EditFormView(this.#point, destination, availableOffers);
-
-    this.#setPointViewHandlers();
-    this.#setEditFormHandlers();
-
-    if (this.#mode === 'default') {
-      if (prevPointView) {
-        replace(this.#routePointView, prevPointView);
-      } else {
-        this.#container.appendChild(this.#routePointView.getElement());
-      }
-    } else {
-      if (prevEditFormView) {
-        replace(this.#editFormView, prevEditFormView);
-      } else {
-        this.#container.appendChild(this.#editFormView.getElement());
-      }
+    if (this.#point.id) {
+      const destination = this.#destinations.get(this.#point.destinationId);
+      const pointOffers = (this.#point.offers || []).map(id => this.#offers.get(id)).filter(Boolean);
+      this.#routePointView = new RoutePointView(this.#point, destination, pointOffers);
+      this.#routePointView.setEditClickHandler(() => this.openEditForm());
+      this.#routePointView.setFavoriteClickHandler(() => this.#handleFavoriteClick());
+      this.#container.appendChild(this.#routePointView.getElement());
     }
   }
 
-  #setPointViewHandlers() {
-    this.#routePointView.setEditClickHandler(() => this.#switchToEditMode());
-    this.#routePointView.setFavoriteClickHandler(() => this.#handleFavoriteClick());
-  }
-
-  #setEditFormHandlers() {
+  openEditForm() {
+    const destination = this.#destinations.get(this.#point.destinationId);
+    const availableOffers = Array.from(this.#offers.values())
+      .filter(o => o.type === this.#point.type)
+      .map(({type: _t, ...o}) => o);
+    this.#editFormView = new EditFormView(
+      this.#point, destination, availableOffers,
+      !this.#point.id, this.#destinations, this.#offers
+    );
     this.#editFormView.setFormSubmitHandler(() => this.#handleFormSubmit());
     this.#editFormView.setRollupClickHandler(() => this.#handleRollupClick());
-  }
+    this.#editFormView.setResetClickHandler(() => this.#handleResetClick());
 
-  #switchToEditMode() {
-    replace(this.#editFormView, this.#routePointView);
-    this.#mode = 'edit';
-    this.#onModeChange(this.#point.id);
-    this.#attachEscKeyListener();
-  }
-
-  #switchToDefaultMode() {
-    replace(this.#routePointView, this.#editFormView);
-    this.#mode = 'default';
-    this.#removeEscKeyListener();
-  }
-
-  async #handleFormSubmit() {
-    // Get the updated data from the form view
-    const formState = this.#editFormView.getState();
-
-    // Merge form state with original point data
-    const updatedPoint = {
-      ...this.#point,
-      type: formState.type,
-      dateFrom: formState.dateFrom,
-      dateTo: formState.dateTo,
-      basePrice: formState.basePrice,
-      offers: new Set(formState.selectedOffers || [])
-    };
-
-    // Show saving state
-    this.#editFormView.setSaving(true);
-
-    try {
-      // Call the model with async API sync
-      await this.#model.updateWaypoint(updatedPoint, this.#apiService);
-
-      // Update internal point reference
-      this.#point = updatedPoint;
-
-      // Switch back to default view
-      this.#switchToDefaultMode();
-    } catch (error) {
-      console.error('Failed to save point:', error);
-      // Show error feedback
-      this.#editFormView.shake();
-      this.#editFormView.setSaving(false);
-    }
-  }
-
-  #handleRollupClick() {
-    if (this.#mode === 'edit') {
-      // In edit mode: delete the point
-      this.#handleDeleteClick();
+    if (!this.#point.id) {
+      this.#container.appendChild(this.#editFormView.getElement());
     } else {
-      // In default mode: just close
-      this.#switchToDefaultMode();
+      replace(this.#editFormView, this.#routePointView);
+    }
+    this.#editFormView.attachEventListeners();
+
+    this.#mode = 'edit';
+    this.#attachEscKeyListener();
+    if (this.#onModeChange && this.#point.id) {
+      this.#onModeChange(this.#point.id);
     }
   }
 
-  async #handleDeleteClick() {
-    // Show deleting state
-    this.#editFormView.setDeleting(true);
-
-    try {
-      // Call the model with async API sync
-      await this.#model.deleteWaypoint(this.#point.id, this.#apiService);
-
-      // Point was deleted, remove it from DOM
-      this.destroy();
-    } catch (error) {
-      console.error('Failed to delete point:', error);
-      // Show error feedback
-      this.#editFormView.shake();
-      this.#editFormView.setDeleting(false);
-    }
-  }
-
-  #handleFavoriteClick() {
-    this.#point.isFavorite = !this.#point.isFavorite;
-    this.#onDataChange(this.#point);
-    // Перерисовка только кнопки избранного (partial data binding)
-    this.#renderFavoriteButton();
-  }
-
-  #renderFavoriteButton() {
-    const pointElement = this.#routePointView.getElement();
-    const favoriteBtn = pointElement.querySelector('.event__favorite-btn');
-
-    if (favoriteBtn) {
-      if (this.#point.isFavorite) {
-        favoriteBtn.classList.add('event__favorite-btn--active');
-      } else {
-        favoriteBtn.classList.remove('event__favorite-btn--active');
-      }
-    }
-  }
-
-  #attachEscKeyListener() {
-    this.#escKeyHandler = (evt) => {
-      if (evt.key === 'Escape') {
-        this.#switchToDefaultMode();
-      }
-    };
-    document.addEventListener('keydown', this.#escKeyHandler);
-  }
-
-  #removeEscKeyListener() {
-    if (this.#escKeyHandler) {
-      document.removeEventListener('keydown', this.#escKeyHandler);
-      this.#escKeyHandler = null;
-    }
+  resetMode() {
+    if (this.#mode === 'edit') this.#switchToDefaultMode();
   }
 
   destroy() {
     this.#removeEscKeyListener();
     if (this.#routePointView) {
-      this.#routePointView.getElement().remove();
+      const el = this.#routePointView.getElement();
+      if (el && el.parentElement) el.remove();
     }
     if (this.#editFormView) {
-      this.#editFormView.getElement().remove();
+      const el = this.#editFormView.getElement();
+      if (el && el.parentElement) el.remove();
+    }
+    if (this.#container && this.#container.parentElement) this.#container.remove();
+  }
+
+  getPointId() { return this.#point.id; }
+
+  #switchToDefaultMode() {
+    if (!this.#point.id) {
+      const editEl = this.#editFormView?.getElement?.();
+      if (editEl && editEl.parentElement) editEl.remove();
+      const container = this.#container;
+      if (container && container.parentElement) {
+        const list = container.parentElement;
+        container.remove();
+        if (list && list.children.length === 0) {
+          list.innerHTML = '<p class="trip-events__msg">Click New Event to create your first point</p>';
+        }
+      }
+      if (this.#onModeChange) this.#onModeChange(null);
+    } else {
+      const editEl = this.#editFormView?.getElement?.();
+      if (editEl && editEl.parentElement) {
+        replace(this.#routePointView, this.#editFormView);
+      }
+    }
+    this.#mode = 'default';
+    this.#removeEscKeyListener();
+  }
+
+  #handleRollupClick() { this.#switchToDefaultMode(); }
+
+  #handleResetClick() {
+    if (this.#point.id) this.#handleDeleteClick();
+    else this.#switchToDefaultMode();
+  }
+
+  async #handleFormSubmit() {
+    const formState = this.#editFormView.getState();
+    if (!formState.destinationName) {
+      this.#editFormView.shake();
+      this.#editFormView.setSaving(false);
+      return;
+    }
+    let destinationId = formState.destinationId || this.#point.destinationId;
+    for (const [id, dest] of this.#destinations) {
+      if (dest.name === formState.destinationName) { destinationId = id; break; }
+    }
+    const updatedPoint = {
+      ...this.#point,
+      type: formState.type,
+      dateFrom: formState.dateFrom,
+      dateTo: formState.dateTo,
+      basePrice: parseInt(formState.basePrice, 10) || 0,
+      offers: formState.selectedOffers || [],
+      destinationId,
+    };
+    this.#editFormView.setSaving(true);
+    try {
+      if (this.#point.id) {
+        await this.#model.updateWaypoint(updatedPoint, this.#apiService);
+        this.#point = updatedPoint;
+        this.#switchToDefaultMode();
+      } else {
+        await this.#model.addWaypoint(updatedPoint, this.#apiService);
+        if (this.#onModeChange) this.#onModeChange(null);
+      }
+    } catch (err) {
+      this.#editFormView.shake();
+      this.#editFormView.setSaving(false);
     }
   }
 
-  resetMode() {
-    if (this.#mode === 'edit') {
-      this.#switchToDefaultMode();
+  async #handleDeleteClick() {
+    this.#editFormView.setDeleting(true);
+    try {
+      await this.#model.deleteWaypoint(this.#point.id, this.#apiService);
+      this.destroy();
+    } catch (err) {
+      this.#editFormView.shake();
+      this.#editFormView.setDeleting(false);
     }
   }
 
-  getPointId() {
-    return this.#point.id;
+  async #handleFavoriteClick() {
+    const updated = {...this.#point, isFavorite: !this.#point.isFavorite};
+    try {
+      await this.#model.updateWaypoint(updated, this.#apiService);
+      this.#point = updated;
+      const btn = this.#routePointView?.getElement()?.querySelector('.event__favorite-btn');
+      if (btn) btn.classList.toggle('event__favorite-btn--active', this.#point.isFavorite);
+    } catch (err) {
+      this.#routePointView?.shake?.();
+    }
+  }
+
+  #attachEscKeyListener() {
+    this.#escKeyHandler = (evt) => {
+      if (evt.key === 'Escape') { evt.preventDefault(); this.#switchToDefaultMode(); }
+    };
+    document.addEventListener('keyup', this.#escKeyHandler);
+  }
+
+  #removeEscKeyListener() {
+    if (this.#escKeyHandler) {
+      document.removeEventListener('keyup', this.#escKeyHandler);
+      this.#escKeyHandler = null;
+    }
   }
 }

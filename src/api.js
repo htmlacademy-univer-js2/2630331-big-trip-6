@@ -123,15 +123,12 @@ export function adaptToClient(serverPoint) {
   return {
     id: serverPoint.id,
     type: serverPoint.type,
-    destinationId: serverPoint.destination.id,
-    destinationName: serverPoint.destination.name || '',
-    destinationDescription: serverPoint.destination.description || '',
-    destinationPictures: serverPoint.destination.pictures || [],
+    destinationId: serverPoint.destination,
     basePrice: serverPoint.base_price,
     dateFrom: serverPoint.date_from,
     dateTo: serverPoint.date_to,
     isFavorite: serverPoint.is_favorite,
-    offers: new Set(serverPoint.offers) // Convert array to Set
+    offers: serverPoint.offers || []
   };
 }
 
@@ -141,19 +138,15 @@ export function adaptToClient(serverPoint) {
  * @returns {Object} Point in server format
  */
 export function adaptToServer(clientPoint) {
-  return {
-    id: clientPoint.id,
+  const result = {
     type: clientPoint.type,
-    destination: {
-      id: clientPoint.destinationId,
-      name: clientPoint.destinationName || '',
-      description: clientPoint.destinationDescription || '',
-      pictures: clientPoint.destinationPictures || []
-    },
-    base_price: clientPoint.basePrice,
+    destination: clientPoint.destinationId || "",
+    base_price: parseInt(clientPoint.basePrice, 10) || 0,
     date_from: clientPoint.dateFrom,
     date_to: clientPoint.dateTo,
-    is_favorite: clientPoint.isFavorite,
-    offers: Array.from(clientPoint.offers || []) // Convert Set back to array
+    is_favorite: Boolean(clientPoint.isFavorite),
+    offers: Array.from(clientPoint.offers || [])
   };
+  if (clientPoint.id) { result.id = clientPoint.id; }
+  return result;
 }
