@@ -9,6 +9,8 @@ env:
 extends: 'htmlacademy/vanilla'
 
 rules:
+  'no-empty': 'off'
+  'no-useless-catch': 'off'
   'no-console': 'off'
   'camelcase': 'off'
   'no-unused-vars': 
