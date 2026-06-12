@@ -159,8 +159,8 @@ export default class EditFormView extends AbstractStatefulView {
         const newType = evt.target.value;
         if (this._offersMap && this._offersMap.size > 0) {
           this.#availableOffers = Array.from(this._offersMap.values())
-            // eslint-disable-next-line no-unused-vars
             .filter((o) => o.type === newType)
+            // eslint-disable-next-line no-unused-vars
             .map(({type: _type, ...o}) => o);
         }
         this.updateState({ type: newType, selectedOffers: [] });
@@ -319,8 +319,8 @@ export default class EditFormView extends AbstractStatefulView {
     const currentType = this.getStateValue('type');
     if (this._offersMap && this._offersMap.size > 0) {
       this.#availableOffers = Array.from(this._offersMap.values())
-        // eslint-disable-next-line no-unused-vars
         .filter((o) => o.type === currentType)
+        // eslint-disable-next-line no-unused-vars
         .map(({type: _type, ...o}) => o);
     }
     this.attachEventListeners();
