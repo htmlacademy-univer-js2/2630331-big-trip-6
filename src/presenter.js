@@ -2,7 +2,6 @@ import Filter from './view/filter.js';
 import Sort from './view/sort.js';
 import PointPresenter from './presenter/point-presenter.js';
 import TripEventsList from './view/tripEventsList.js';
-import _EmptyListView from './view/emptyListView.js';
 import { render, RenderPosition } from './render.js';
 import { getFilterStats, getDisabledFilters, filterPoints, FilterType } from './utils/filter-utils.js';
 

@@ -251,7 +251,6 @@ export default class PointsModel {
       return JSON.parse(JSON.stringify(this.#points[index]));
     } catch (error) {
       // Do NOT update local data if server update fails
-      console.error('Failed to update point on server:', error);
       throw error;
     }
   }
@@ -287,8 +286,8 @@ export default class PointsModel {
       return JSON.parse(JSON.stringify(createdPoint));
     } catch (error) {
       // Do NOT update local data if server creation fails
-      console.error('Failed to create point on server:', error);
       throw error;
+      // Error will be handled by caller
     }
   }
 
@@ -323,9 +322,9 @@ export default class PointsModel {
 
       // Notify observers of successful deletion
       this.#notifyObservers();
+      // Error will be handled by caller
     } catch (error) {
       // Do NOT update local data if server deletion fails
-      console.error('Failed to delete point on server:', error);
       throw error;
     }
   }
@@ -350,8 +349,8 @@ export default class PointsModel {
     this.#observers.forEach((callback) => {
       try {
         callback();
+        // Silently ignore callback errors
       } catch (error) {
-        console.error('Observer callback error:', error);
       }
     });
   }

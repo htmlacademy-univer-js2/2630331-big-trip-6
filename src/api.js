@@ -124,10 +124,10 @@ export function adaptToClient(serverPoint) {
     id: serverPoint.id,
     type: serverPoint.type,
     destinationId: serverPoint.destination,
-    basePrice: serverPoint.base_price,
-    dateFrom: serverPoint.date_from,
-    dateTo: serverPoint.date_to,
-    isFavorite: serverPoint.is_favorite,
+    basePrice: serverPoint.basePrice,
+    dateFrom: serverPoint.dateFrom,
+    dateTo: serverPoint.dateTo,
+    isFavorite: serverPoint.isFavorite,
     offers: serverPoint.offers || []
   };
 }
@@ -141,10 +141,10 @@ export function adaptToServer(clientPoint) {
   const result = {
     type: clientPoint.type,
     destination: clientPoint.destinationId || '',
-    base_price: parseInt(clientPoint.basePrice, 10) || 0,
-    date_from: clientPoint.dateFrom,
-    date_to: clientPoint.dateTo,
-    is_favorite: Boolean(clientPoint.isFavorite),
+    basePrice: parseInt(clientPoint.basePrice, 10) || 0,
+    dateFrom: clientPoint.dateFrom,
+    dateTo: clientPoint.dateTo,
+    isFavorite: Boolean(clientPoint.isFavorite),
     offers: Array.from(clientPoint.offers || [])
   };
   if (clientPoint.id) {

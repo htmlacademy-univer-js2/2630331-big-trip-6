@@ -52,7 +52,6 @@ async function initApp() {
     );
     tripInfoPresenter.init();
   } catch (error) {
-    console.error('Failed to load application:', error);
     showErrorState('Failed to load latest route information.');
   }
 }
