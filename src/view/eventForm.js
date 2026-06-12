@@ -39,7 +39,7 @@ export default class EventForm {
 
     const offersHtml = this.availableOffers.length > 0 ? `
       <div class="event__available-offers">
-        ${this.availableOffers.map((offer, _index) => `
+        ${this.availableOffers.map((offer) => `
           <div class="event__offer-selector">
             <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1" type="checkbox" name="event-offer-${offer.id}" ${selectedOfferIds.includes(offer.id) ? 'checked' : ''}>
             <label class="event__offer-label" for="event-offer-${offer.id}-1">
