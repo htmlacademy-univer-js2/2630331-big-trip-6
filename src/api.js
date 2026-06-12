@@ -141,9 +141,13 @@ export function adaptToServer(clientPoint) {
   const result = {
     type: clientPoint.type,
     destination: clientPoint.destinationId || '',
+    // eslint-disable-next-line camelcase
     base_price: parseInt(clientPoint.basePrice, 10) || 0,
+    // eslint-disable-next-line camelcase
     date_from: clientPoint.dateFrom,
+    // eslint-disable-next-line camelcase
     date_to: clientPoint.dateTo,
+    // eslint-disable-next-line camelcase
     is_favorite: Boolean(clientPoint.isFavorite),
     offers: Array.from(clientPoint.offers || [])
   };
