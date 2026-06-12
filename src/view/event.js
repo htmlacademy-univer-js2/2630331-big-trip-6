@@ -48,7 +48,7 @@ export default class Event {
 
     const offersHtml = this.offers.length > 0 ? `
       <ul class="event__selected-offers">
-        ${this.offers.map(offer => `
+        ${this.offers.map((offer) => `
           <li class="event__offer">
             <span class="event__offer-title">${offer.title}</span>
             &plus;&euro;&nbsp;

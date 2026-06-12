@@ -13,19 +13,16 @@ function calculateDuration(dateFrom, dateTo) {
   const from = dayjs(dateFrom);
   const to = dayjs(dateTo);
   const diffMins = to.diff(from, 'minute');
-
-  if (diffMins < 60) {
-    return `${diffMins}M`;
-  }
-
-  const hours = Math.floor(diffMins / 60);
+  const days = Math.floor(diffMins / (60 * 24));
+  const hours = Math.floor((diffMins % (60 * 24)) / 60);
   const mins = diffMins % 60;
-
-  if (mins === 0) {
-    return `${String(hours).padStart(2, '0')}H`;
+  if (days > 0) {
+    return `${String(days).padStart(2, '0') }D ${ String(hours).padStart(2, '0') }H ${ String(mins).padStart(2, '0') }M`;
   }
-
-  return `${String(hours).padStart(2, '0')}H ${String(mins).padStart(2, '0')}M`;
+  if (hours > 0) {
+    return `${String(hours).padStart(2, '0') }H ${ String(mins).padStart(2, '0') }M`;
+  }
+  return `${String(mins).padStart(2, '0') }M`;
 }
 
 export default class RoutePointView extends View {
@@ -46,14 +43,14 @@ export default class RoutePointView extends View {
     const { type, dateFrom, dateTo, basePrice } = this.#point;
     const destinationName = this.#destination ? this.#destination.name : 'Unknown';
 
-    const dateFormatted = formatDate(dateFrom);
-    const timeStart = formatTime(dateFrom);
-    const timeEnd = formatTime(dateTo);
-    const duration = calculateDuration(dateFrom, dateTo);
+    const dateFormatted = dateFrom ? formatDate(dateFrom) : '';
+    const timeStart = dateFrom ? formatTime(dateFrom) : '';
+    const timeEnd = dateTo ? formatTime(dateTo) : '';
+    const duration = dateFrom && dateTo ? calculateDuration(dateFrom, dateTo) : '00M';
 
     const offersHtml = this.#offers.length > 0 ? `
       <ul class="event__selected-offers">
-        ${this.#offers.map(offer => `
+        ${this.#offers.map((offer) => `
           <li class="event__offer">
             <span class="event__offer-title">${offer.title}</span>
             &plus;&euro;&nbsp;
@@ -64,7 +61,7 @@ export default class RoutePointView extends View {
     ` : '';
 
     return `<div class="event">
-      <time class="event__date" datetime="${dateFrom.split('T')[0]}">${dateFormatted}</time>
+      <time class="event__date" datetime="${dateFrom ? dateFrom.split('T')[0] : ''}">${dateFormatted}</time>
       <div class="event__type">
         <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
       </div>
@@ -96,9 +93,32 @@ export default class RoutePointView extends View {
 
   setEditClickHandler(callback) {
     this.#editClickHandler = callback;
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
-      this.#editClickHandler();
+    const btn = this.element.querySelector('.event__rollup-btn');
+    btn.addEventListener('click', (evt) => {
+      if (evt.detail === 0) {
+        return;
+      } this.#editClickHandler();
     });
+  }
+
+  shake() {
+    const el = this.element;
+    if (!el) {
+      return;
+    }
+    const target = el.parentElement && el.parentElement.tagName === 'LI' ? el.parentElement : el;
+    target.style.position = 'relative';
+    let step = 0;
+    const offsets = [10, -10, 8, -8, 5, -5, 0];
+    const id = setInterval(() => {
+      target.style.left = `${offsets[step] }px`;
+      step++;
+      if (step >= offsets.length) {
+        clearInterval(id);
+        target.style.left = '';
+        target.style.position = '';
+      }
+    }, 60);
   }
 
   setFavoriteClickHandler(callback) {

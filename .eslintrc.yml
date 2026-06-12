@@ -1,5 +1,5 @@
 parserOptions:
-  ecmaVersion: latest
+  ecmaVersion: 2022
   sourceType: 'module'
 
 env:
@@ -7,3 +7,12 @@ env:
   browser: true
 
 extends: 'htmlacademy/vanilla'
+
+rules:
+  'no-console': 'off'
+  'camelcase': 'off'
+  'no-unused-vars': 
+    - 'error'
+    - argsIgnorePattern: '^_'
+      varsIgnorePattern: '^_'
+  'quotes': 'off'

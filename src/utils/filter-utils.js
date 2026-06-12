@@ -17,16 +17,16 @@ export const FilterType = {
  */
 export function getFilterStats(waypoints, now = new Date()) {
   const hasWaypoints = waypoints.length > 0;
-  
+
   return {
     [FilterType.EVERYTHING]: hasWaypoints,
-    [FilterType.FUTURE]: waypoints.some(p => new Date(p.dateFrom) > now),
-    [FilterType.PRESENT]: waypoints.some(p => {
+    [FilterType.FUTURE]: waypoints.some((p) => new Date(p.dateFrom) > now),
+    [FilterType.PRESENT]: waypoints.some((p) => {
       const dateFrom = new Date(p.dateFrom);
       const dateTo = new Date(p.dateTo);
       return dateFrom <= now && dateTo >= now;
     }),
-    [FilterType.PAST]: waypoints.some(p => new Date(p.dateTo) < now)
+    [FilterType.PAST]: waypoints.some((p) => new Date(p.dateTo) < now)
   };
 }
 
@@ -38,8 +38,21 @@ export function getFilterStats(waypoints, now = new Date()) {
  */
 export function getDisabledFilters(stats) {
   const disabled = {};
-  Object.keys(stats).forEach(key => {
+  Object.keys(stats).forEach((key) => {
     disabled[key] = !stats[key];
   });
   return disabled;
+}
+
+export function filterPoints(points, filterType, now = new Date()) {
+  switch(filterType) {
+    case FilterType.FUTURE:
+      return points.filter((p) => new Date(p.dateFrom) >= now);
+    case FilterType.PRESENT:
+      return points.filter((p) => new Date(p.dateFrom) <= now && new Date(p.dateTo) >= now);
+    case FilterType.PAST:
+      return points.filter((p) => new Date(p.dateTo) <= now);
+    default:
+      return points;
+  }
 }

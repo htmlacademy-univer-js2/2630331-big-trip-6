@@ -30,7 +30,7 @@ export default class EventForm {
     const photos = this.destination?.pictures || [];
     const selectedOfferIds = this.point?.offers || [];
 
-    const typeOptionsHtml = EVENT_TYPES.map(eventType => `
+    const typeOptionsHtml = EVENT_TYPES.map((eventType) => `
       <div class="event__type-item">
         <input id="event-type-${eventType}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${eventType}" ${eventType === type ? 'checked' : ''}>
         <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-1">${eventType.charAt(0).toUpperCase() + eventType.slice(1)}</label>
@@ -39,7 +39,7 @@ export default class EventForm {
 
     const offersHtml = this.availableOffers.length > 0 ? `
       <div class="event__available-offers">
-        ${this.availableOffers.map((offer, index) => `
+        ${this.availableOffers.map((offer, _index) => `
           <div class="event__offer-selector">
             <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1" type="checkbox" name="event-offer-${offer.id}" ${selectedOfferIds.includes(offer.id) ? 'checked' : ''}>
             <label class="event__offer-label" for="event-offer-${offer.id}-1">
@@ -55,7 +55,7 @@ export default class EventForm {
     const photosHtml = photos.length > 0 ? `
       <div class="event__photos-container">
         <div class="event__photos-tape">
-          ${photos.map(photo => `
+          ${photos.map((photo) => `
             <img class="event__photo" src="${photo.src}" alt="${photo.description}">
           `).join('')}
         </div>
@@ -142,10 +142,5 @@ export default class EventForm {
     return this.element;
   }
 }
-
-
-
-
-
 
 

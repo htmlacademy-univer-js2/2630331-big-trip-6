@@ -8,7 +8,6 @@ const RenderPosition = {
 function createElement(template) {
   const newElement = document.createElement('div');
   newElement.innerHTML = template;
-
   return newElement.firstElementChild;
 }
 
@@ -17,14 +16,10 @@ function render(component, container, place = RenderPosition.BEFOREEND) {
 }
 
 function replace(newComponent, oldComponent) {
-  const newElement = newComponent.getElement();
-  const oldElement = oldComponent.getElement();
-
-  oldElement.replaceWith(newElement);
+  const oldElement = oldComponent instanceof Element ? oldComponent : oldComponent.element;
+  const newElement = newComponent instanceof Element ? newComponent : newComponent.element;
+  const parent = oldElement.parentElement;
+  parent.replaceChild(newElement, oldElement);
 }
 
-function remove(component) {
-  component.getElement().remove();
-}
-
-export {RenderPosition, createElement, render, replace, remove};
+export {RenderPosition, createElement, render, replace};

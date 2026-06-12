@@ -153,7 +153,7 @@ export function generateMockData() {
       dateTo,
       basePrice: Math.floor(Math.random() * 500) + 50,
       isFavorite: Math.random() > 0.7,
-      offers: getRandomElements(OFFERS, 2).map(offer => offer.id)
+      offers: getRandomElements(OFFERS, 2).map((offer) => offer.id)
     });
   }
 

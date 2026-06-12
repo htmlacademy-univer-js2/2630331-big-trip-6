@@ -1,21 +1,24 @@
-export default class View {
-  #element = null;
+import {createElement} from '../render.js';
 
-  get element() {
-    if (!this.#element) {
-      this.#element = this.createElement(this.template);
+export default class AbstractView {
+  #element = null;
+  _callback = {};
+
+  constructor() {
+    if (new.target === AbstractView) {
+      throw new Error('Can\'t instantiate AbstractView, only concrete one.');
     }
-    return this.#element;
   }
 
   get template() {
-    throw new Error('template getter must be implemented in subclass');
+    throw new Error('Abstract method not implemented: get template');
   }
 
-  createElement(markup) {
-    const div = document.createElement('div');
-    div.innerHTML = markup;
-    return div.firstElementChild;
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+    return this.#element;
   }
 
   getElement() {
