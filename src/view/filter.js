@@ -4,7 +4,7 @@ export default class Filter {
   constructor() {
     this.element = null;
     this.disabledFilters = {};
-    this._activeFilter = "everything";
+    this._activeFilter = 'everything';
   }
 
   getTemplate() {
@@ -15,7 +15,7 @@ export default class Filter {
       { id: 'past', value: FilterType.PAST, label: 'Past' }
     ];
 
-    const filterHtml = filters.map(filter => {
+    const filterHtml = filters.map((filter) => {
       const isDisabled = this.disabledFilters[filter.value] ? 'disabled' : '';
       return `
         <div class="trip-filters__filter">
@@ -54,7 +54,7 @@ export default class Filter {
    */
   updateDisabledFilters(disabledFilters) {
     this.disabledFilters = disabledFilters;
-    
+
     if (this.element) {
       const newElement = document.createElement('div');
       newElement.innerHTML = this.getTemplate();
@@ -70,7 +70,9 @@ export default class Filter {
       }
       // restore active filter visually
       const activeInput = this.element.querySelector(`[value="${this._activeFilter}"]`);
-      if (activeInput) activeInput.checked = true;
+      if (activeInput) {
+        activeInput.checked = true;
+      }
     }
   }
 
@@ -79,7 +81,9 @@ export default class Filter {
    * @param {Function} callback - Called with filter value when user selects filter
    */
   setFilterChangeHandler(callback) {
-    this._filterChangeCallback = (val) => { this._activeFilter = val; callback(val); };
+    this._filterChangeCallback = (val) => {
+      this._activeFilter = val; callback(val);
+    };
     this.getElement().addEventListener('change', (evt) => {
       if (evt.target.name === 'trip-filter') {
         callback(evt.target.value);

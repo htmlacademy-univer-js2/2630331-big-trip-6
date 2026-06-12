@@ -5,7 +5,7 @@ import ApiService, { adaptToClient } from './api.js';
 
 // API Configuration
 const API_BASE_URL = 'https://23.objects.htmlacademy.pro/big-trip';
-const AUTHORIZATION = 'Basic ' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+const AUTHORIZATION = `Basic ${ Math.random().toString(36).substring(2, 15) }${Math.random().toString(36).substring(2, 15)}`;
 
 // Show loading state
 function showLoadingState() {

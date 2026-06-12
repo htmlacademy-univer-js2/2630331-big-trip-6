@@ -1,6 +1,6 @@
 const RenderPosition = {
   BEFOREBEGIN: 'beforebegin',
-AFTERBEGIN: 'afterbegin',
+  AFTERBEGIN: 'afterbegin',
   BEFOREEND: 'beforeend',
   AFTEREND: 'afterend',
 };

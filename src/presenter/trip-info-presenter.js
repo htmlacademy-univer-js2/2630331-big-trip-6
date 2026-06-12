@@ -22,20 +22,22 @@ export default class TripInfoPresenter {
     const existing = this.#container.querySelector('.trip-info');
 
     if (points.length === 0) {
-      if (existing) { existing.remove(); }
+      if (existing) {
+        existing.remove();
+      }
       return;
     }
 
     const dests = this.#model.getDestinations();
-    const destMap = new Map(dests.map(d => [d.id, d]));
+    const destMap = new Map(dests.map((d) => [d.id, d]));
     const sorted = [...points].sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
 
-    const destNames = sorted.map(p => destMap.get(p.destinationId)?.name || '').filter(Boolean);
+    const destNames = sorted.map((p) => destMap.get(p.destinationId)?.name || '').filter(Boolean);
     let route = '';
     if (destNames.length <= 3) {
       route = destNames.join(' — ');
     } else {
-      route = destNames[0] + ' — ... — ' + destNames[destNames.length - 1];
+      route = `${destNames[0] } — ... — ${ destNames[destNames.length - 1]}`;
     }
 
     const startDate = sorted[0]?.dateFrom;
@@ -46,7 +48,7 @@ export default class TripInfoPresenter {
     const endFormatted = startD.month() === endD.month() ? endD.format('DD MMM').toUpperCase() : endD.format('DD MMM').toUpperCase();
 
     const offersFlat = new Map();
-    this.#model.getOffers().forEach(g => g.offers.forEach(o => offersFlat.set(o.id, o)));
+    this.#model.getOffers().forEach((g) => g.offers.forEach((o) => offersFlat.set(o.id, o)));
     const totalCost = points.reduce((sum, p) => {
       const offersCost = (p.offers || []).reduce((s, id) => s + (offersFlat.get(id)?.price || 0), 0);
       return sum + (p.basePrice || 0) + offersCost;
@@ -54,7 +56,9 @@ export default class TripInfoPresenter {
 
     this.#view.updateData(route, startFormatted, endFormatted, totalCost);
     const element = this.#view.render();
-    if (!element) { return; }
+    if (!element) {
+      return;
+    }
 
     if (existing) {
       existing.replaceWith(element);

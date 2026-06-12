@@ -17,7 +17,7 @@ export default class PointsModel {
 
     // Calculate next ID based on existing points
     if (points.length > 0) {
-      const maxId = Math.max(...points.map(p => p.id || 0));
+      const maxId = Math.max(...points.map((p) => p.id || 0));
       this.#nextId = maxId + 1;
     }
   }
@@ -70,7 +70,7 @@ export default class PointsModel {
       throw new Error('Point must have an id');
     }
 
-    const index = this.#points.findIndex(p => p.id === updatedPoint.id);
+    const index = this.#points.findIndex((p) => p.id === updatedPoint.id);
     if (index === -1) {
       return null;
     }
@@ -113,7 +113,7 @@ export default class PointsModel {
    * @returns {boolean} True if deleted, false if not found
    */
   deletePoint(pointId) {
-    const index = this.#points.findIndex(p => p.id === pointId);
+    const index = this.#points.findIndex((p) => p.id === pointId);
     if (index === -1) {
       return false;
     }
@@ -129,7 +129,7 @@ export default class PointsModel {
    * @returns {Object|null} Point or null if not found
    */
   getPointById(pointId) {
-    const point = this.#points.find(p => p.id === pointId);
+    const point = this.#points.find((p) => p.id === pointId);
     return point ? JSON.parse(JSON.stringify(point)) : null;
   }
 
@@ -140,8 +140,8 @@ export default class PointsModel {
    */
   getOffersByType(type) {
     return this.#offers
-      .filter(offer => offer.type === type)
-      .map(offer => JSON.parse(JSON.stringify(offer)));
+      .filter((offer) => offer.type === type)
+      .map((offer) => JSON.parse(JSON.stringify(offer)));
   }
 
   /**
@@ -154,8 +154,8 @@ export default class PointsModel {
       return [];
     }
     return this.#offers
-      .filter(offer => offerIds.includes(offer.id))
-      .map(offer => JSON.parse(JSON.stringify(offer)));
+      .filter((offer) => offerIds.includes(offer.id))
+      .map((offer) => JSON.parse(JSON.stringify(offer)));
   }
 
   /**
@@ -164,7 +164,7 @@ export default class PointsModel {
    * @returns {Object|null} Destination or null if not found
    */
   getDestinationById(destinationId) {
-    const destination = this.#destinations.find(d => d.id === destinationId);
+    const destination = this.#destinations.find((d) => d.id === destinationId);
     return destination ? JSON.parse(JSON.stringify(destination)) : null;
   }
 
@@ -203,7 +203,7 @@ export default class PointsModel {
    * @param {Function} callback - Callback to remove
    */
   unsubscribe(callback) {
-    this.#observers = this.#observers.filter(obs => obs !== callback);
+    this.#observers = this.#observers.filter((obs) => obs !== callback);
   }
 
   /**
@@ -234,7 +234,7 @@ export default class PointsModel {
       const adaptedPoint = adaptToClient(serverResponse);
 
       // Now update local data with server response
-      const index = this.#points.findIndex(p => p.id === adaptedPoint.id);
+      const index = this.#points.findIndex((p) => p.id === adaptedPoint.id);
       if (index === -1) {
         throw new Error(`Point with id ${adaptedPoint.id} not found in local data`);
       }
@@ -314,7 +314,7 @@ export default class PointsModel {
       await apiService.deletePoint(pointId);
 
       // Remove from local array
-      const index = this.#points.findIndex(p => p.id === pointId);
+      const index = this.#points.findIndex((p) => p.id === pointId);
       if (index === -1) {
         throw new Error(`Point with id ${pointId} not found in local data`);
       }
@@ -347,7 +347,7 @@ export default class PointsModel {
    * @private
    */
   #notifyObservers() {
-    this.#observers.forEach(callback => {
+    this.#observers.forEach((callback) => {
       try {
         callback();
       } catch (error) {

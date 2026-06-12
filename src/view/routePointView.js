@@ -17,12 +17,12 @@ function calculateDuration(dateFrom, dateTo) {
   const hours = Math.floor((diffMins % (60 * 24)) / 60);
   const mins = diffMins % 60;
   if (days > 0) {
-    return String(days).padStart(2, '0') + 'D ' + String(hours).padStart(2, '0') + 'H ' + String(mins).padStart(2, '0') + 'M';
+    return `${String(days).padStart(2, '0') }D ${ String(hours).padStart(2, '0') }H ${ String(mins).padStart(2, '0') }M`;
   }
   if (hours > 0) {
-    return String(hours).padStart(2, '0') + 'H ' + String(mins).padStart(2, '0') + 'M';
+    return `${String(hours).padStart(2, '0') }H ${ String(mins).padStart(2, '0') }M`;
   }
-  return String(mins).padStart(2, '0') + 'M';
+  return `${String(mins).padStart(2, '0') }M`;
 }
 
 export default class RoutePointView extends View {
@@ -43,14 +43,14 @@ export default class RoutePointView extends View {
     const { type, dateFrom, dateTo, basePrice } = this.#point;
     const destinationName = this.#destination ? this.#destination.name : 'Unknown';
 
-    const dateFormatted = dateFrom ? formatDate(dateFrom) : "";
-    const timeStart = dateFrom ? formatTime(dateFrom) : "";
-    const timeEnd = dateTo ? formatTime(dateTo) : "";
-    const duration = dateFrom && dateTo ? calculateDuration(dateFrom, dateTo) : "00M";
+    const dateFormatted = dateFrom ? formatDate(dateFrom) : '';
+    const timeStart = dateFrom ? formatTime(dateFrom) : '';
+    const timeEnd = dateTo ? formatTime(dateTo) : '';
+    const duration = dateFrom && dateTo ? calculateDuration(dateFrom, dateTo) : '00M';
 
     const offersHtml = this.#offers.length > 0 ? `
       <ul class="event__selected-offers">
-        ${this.#offers.map(offer => `
+        ${this.#offers.map((offer) => `
           <li class="event__offer">
             <span class="event__offer-title">${offer.title}</span>
             &plus;&euro;&nbsp;
@@ -94,18 +94,24 @@ export default class RoutePointView extends View {
   setEditClickHandler(callback) {
     this.#editClickHandler = callback;
     const btn = this.element.querySelector('.event__rollup-btn');
-    btn.addEventListener('click', (evt) => { if (evt.detail === 0) return; this.#editClickHandler(); });
+    btn.addEventListener('click', (evt) => {
+      if (evt.detail === 0) {
+        return;
+      } this.#editClickHandler();
+    });
   }
 
   shake() {
     const el = this.element;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     const target = el.parentElement && el.parentElement.tagName === 'LI' ? el.parentElement : el;
     target.style.position = 'relative';
     let step = 0;
     const offsets = [10, -10, 8, -8, 5, -5, 0];
     const id = setInterval(() => {
-      target.style.left = offsets[step] + 'px';
+      target.style.left = `${offsets[step] }px`;
       step++;
       if (step >= offsets.length) {
         clearInterval(id);

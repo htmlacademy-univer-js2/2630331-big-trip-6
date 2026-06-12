@@ -44,7 +44,7 @@ export default class EditFormView extends AbstractStatefulView {
     const destinationDescription = this.#destination?.description || '';
     const photos = this.#destination?.pictures || [];
 
-    const typeOptionsHtml = EVENT_TYPES.map(eventType => `
+    const typeOptionsHtml = EVENT_TYPES.map((eventType) => `
       <div class="event__type-item">
         <input id="event-type-${eventType}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${eventType}" ${eventType === type ? 'checked' : ''}>
         <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-1">${eventType.charAt(0).toUpperCase() + eventType.slice(1)}</label>
@@ -69,7 +69,7 @@ export default class EditFormView extends AbstractStatefulView {
     const photosHtml = photos.length > 0 ? `
       <div class="event__photos-container">
         <div class="event__photos-tape">
-          ${photos.map(photo => `
+          ${photos.map((photo) => `
             <img class="event__photo" src="${photo.src}" alt="${photo.description}">
           `).join('')}
         </div>
@@ -105,7 +105,7 @@ export default class EditFormView extends AbstractStatefulView {
           <label class="event__label  event__type-output" for="event-destination-1">${type.charAt(0).toUpperCase() + type.slice(1)}</label>
           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1">
           <datalist id="destination-list-1">
-            ${Array.from(this._destinations.values()).map(d => `<option value="${d.name}"></option>`).join("")}
+            ${Array.from(this._destinations.values()).map((d) => `<option value="${d.name}"></option>`).join('')}
           </datalist>
         </div>
 
@@ -126,7 +126,7 @@ export default class EditFormView extends AbstractStatefulView {
         </div>
 
         <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-        <button class="event__reset-btn" type="button">${this._isNew ? "Cancel" : "Delete"}</button>
+        <button class="event__reset-btn" type="button">${this._isNew ? 'Cancel' : 'Delete'}</button>
         ${!this._isNew ? '<button class="event__rollup-btn" type="button"><span class="visually-hidden">Close event</span></button>' : ''}
       </header>
 
@@ -148,16 +148,18 @@ export default class EditFormView extends AbstractStatefulView {
    */
   attachEventListeners() {
     const form = this.element;
-    if (!form) return;
+    if (!form) {
+      return;
+    }
 
     // Handle event type changes
     const typeInputs = form.querySelectorAll('input[name="event-type"]');
-    typeInputs.forEach(input => {
+    typeInputs.forEach((input) => {
       input.addEventListener('change', (evt) => {
         const newType = evt.target.value;
         if (this._offersMap && this._offersMap.size > 0) {
           this.#availableOffers = Array.from(this._offersMap.values())
-            .filter(o => o.type === newType)
+            .filter((o) => o.type === newType)
             .map(({type: _t, ...o}) => o);
         }
         this.updateState({ type: newType, selectedOffers: [] });
@@ -166,7 +168,7 @@ export default class EditFormView extends AbstractStatefulView {
 
     // Handle offer selection changes
     const offerCheckboxes = form.querySelectorAll('.event__offer-checkbox');
-    offerCheckboxes.forEach(checkbox => {
+    offerCheckboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', (evt) => {
         const offerId = evt.target.name.replace('event-offer-', '');
         const currentOffers = this.getStateValue('selectedOffers') || [];
@@ -177,40 +179,44 @@ export default class EditFormView extends AbstractStatefulView {
           });
         } else {
           this.updateState({
-            selectedOffers: currentOffers.filter(id => id !== offerId)
+            selectedOffers: currentOffers.filter((id) => id !== offerId)
           });
         }
       });
     });
 
     // Remove orphaned flatpickr calendars
-    document.querySelectorAll('.flatpickr-calendar').forEach(cal => { if (!cal.classList.contains('open') && !cal.classList.contains('inline')) { cal.remove(); } });
-    // Remove orphaned flatpickr calendars
-    document.querySelectorAll('.flatpickr-calendar').forEach(cal => {
+    document.querySelectorAll('.flatpickr-calendar').forEach((cal) => {
       if (!cal.classList.contains('open') && !cal.classList.contains('inline')) {
         cal.remove();
       }
     });
     // Remove orphaned flatpickr calendars
-    document.querySelectorAll('.flatpickr-calendar').forEach(cal => {
+    document.querySelectorAll('.flatpickr-calendar').forEach((cal) => {
       if (!cal.classList.contains('open') && !cal.classList.contains('inline')) {
         cal.remove();
       }
     });
     // Remove orphaned flatpickr calendars
-    document.querySelectorAll('.flatpickr-calendar').forEach(cal => {
+    document.querySelectorAll('.flatpickr-calendar').forEach((cal) => {
       if (!cal.classList.contains('open') && !cal.classList.contains('inline')) {
         cal.remove();
       }
     });
     // Remove orphaned flatpickr calendars
-    document.querySelectorAll('.flatpickr-calendar').forEach(cal => {
+    document.querySelectorAll('.flatpickr-calendar').forEach((cal) => {
       if (!cal.classList.contains('open') && !cal.classList.contains('inline')) {
         cal.remove();
       }
     });
     // Remove orphaned flatpickr calendars
-    document.querySelectorAll('.flatpickr-calendar').forEach(cal => {
+    document.querySelectorAll('.flatpickr-calendar').forEach((cal) => {
+      if (!cal.classList.contains('open') && !cal.classList.contains('inline')) {
+        cal.remove();
+      }
+    });
+    // Remove orphaned flatpickr calendars
+    document.querySelectorAll('.flatpickr-calendar').forEach((cal) => {
       if (!cal.classList.contains('open') && !cal.classList.contains('inline')) {
         cal.remove();
       }
@@ -247,16 +253,20 @@ export default class EditFormView extends AbstractStatefulView {
     }
 
     // Handle destination input changes
-    const destInput = form.querySelector(".event__input--destination");
+    const destInput = form.querySelector('.event__input--destination');
     if (destInput) {
-      destInput.addEventListener("change", (evt) => {
+      destInput.addEventListener('change', (evt) => {
         const newName = evt.target.value;
         let newDest = null;
-        let newDestId = "";
+        let newDestId = '';
         for (const [id, dest] of this._destinations) {
-          if (dest.name === newName) { newDest = dest; newDestId = id; break; }
+          if (dest.name === newName) {
+            newDest = dest; newDestId = id; break;
+          }
         }
-        if (newDest) { this.#destination = newDest; }
+        if (newDest) {
+          this.#destination = newDest;
+        }
         this.updateState({ destinationName: newName, destinationId: newDestId });
       });
     }
@@ -280,18 +290,26 @@ export default class EditFormView extends AbstractStatefulView {
     const rollupBtn = form.querySelector('.event__rollup-btn');
     if (rollupBtn) {
       rollupBtn.addEventListener('click', (evt) => {
-        if (evt.detail === 0 && (this._isSaving || this._isDeleting)) return;
+        if (evt.detail === 0 && (this._isSaving || this._isDeleting)) {
+          return;
+        }
         evt.preventDefault();
-        if (this.#rollupClickHandler) { this.#rollupClickHandler(); }
+        if (this.#rollupClickHandler) {
+          this.#rollupClickHandler();
+        }
       });
     }
     // Handle reset (delete/cancel) button
     const resetBtn = form.querySelector('.event__reset-btn');
     if (resetBtn) {
       resetBtn.addEventListener('click', (evt) => {
-        if (evt.detail === 0 && (this._isSaving || this._isDeleting)) return;
+        if (evt.detail === 0 && (this._isSaving || this._isDeleting)) {
+          return;
+        }
         evt.preventDefault();
-        if (this.#resetClickHandler) { this.#resetClickHandler(); }
+        if (this.#resetClickHandler) {
+          this.#resetClickHandler();
+        }
       });
     }
   }
@@ -300,7 +318,7 @@ export default class EditFormView extends AbstractStatefulView {
     const currentType = this.getStateValue('type');
     if (this._offersMap && this._offersMap.size > 0) {
       this.#availableOffers = Array.from(this._offersMap.values())
-        .filter(o => o.type === currentType)
+        .filter((o) => o.type === currentType)
         .map(({type: _t, ...o}) => o);
     }
     this.attachEventListeners();
@@ -324,12 +342,14 @@ export default class EditFormView extends AbstractStatefulView {
    */
   shake() {
     const el = this.element;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     el.style.position = 'relative';
     let step = 0;
     const offsets = [10, -10, 8, -8, 5, -5, 0];
     const id = setInterval(() => {
-      el.style.left = offsets[step] + 'px';
+      el.style.left = `${offsets[step] }px`;
       step++;
       if (step >= offsets.length) {
         clearInterval(id);
@@ -376,10 +396,12 @@ export default class EditFormView extends AbstractStatefulView {
    */
   _setDisabled(state) {
     const form = this.element;
-    if (!form) return;
+    if (!form) {
+      return;
+    }
 
     form.querySelectorAll('input[type="text"], input[type="checkbox"], input[type="radio"], .event__save-btn, textarea')
-      .forEach(el => {
+      .forEach((el) => {
         el.disabled = state;
       });
   }
