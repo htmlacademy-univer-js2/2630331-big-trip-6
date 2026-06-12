@@ -17,6 +17,10 @@ module.exports = {
         exclude: /node_modules/,
         loader: 'babel-loader',
       },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
     ],
   },
   plugins: [
@@ -38,8 +42,23 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'build'),
     },
-    port: 3000,
+    port: 8080,
     hot: true,
     open: true,
+    proxy: [
+      {
+        context: ['/big-trip', '/static'],
+        target: 'https://24.objects.htmlacademy.pro',
+        secure: false,
+        changeOrigin: true,
+        onError: function(err, req, res) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: err.message }));
+        },
+        headers: {
+          "Connection": "keep-alive"
+        }
+      }
+    ],
   },
 };

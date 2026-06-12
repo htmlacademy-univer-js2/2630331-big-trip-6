@@ -748,6 +748,22 @@ main {
 .event__section:not(:last-child) {
   margin-bottom: 28px; }
 
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake 0.6s ease;
+}
+
 .event__section--offers {
   padding: 0 20px; }
 
