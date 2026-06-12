@@ -42,7 +42,7 @@ export default class PointPresenter {
     const destination = this.#destinations.get(this.#point.destinationId);
     const availableOffers = Array.from(this.#offers.values())
       .filter((o) => o.type === this.#point.type)
-      .map(({type: _t, ...o}) => o);
+      .map(({_type, ...o}) => o);
     this.#editFormView = new EditFormView(
       this.#point, destination, availableOffers,
       !this.#point.id, this.#destinations, this.#offers
