@@ -222,38 +222,31 @@ export default class PointsModel {
     if (!apiService) {
       throw new Error('API service is required for server sync');
     }
-    // eslint-disable-next-line no-useless-catch
+    // Import adapter inside the method to avoid circular dependencies
+    const { adaptToClient } = await import('../api.js');
 
-    try {
-      // Import adapter inside the method to avoid circular dependencies
-      const { adaptToClient } = await import('../api.js');
+    // First, call API to update on server
+    const serverResponse = await apiService.updatePoint(updatedPoint);
 
-      // First, call API to update on server
-      const serverResponse = await apiService.updatePoint(updatedPoint);
+    // Convert server response to client format
+    const adaptedPoint = adaptToClient(serverResponse);
 
-      // Convert server response to client format
-      const adaptedPoint = adaptToClient(serverResponse);
-
-      // Now update local data with server response
-      const index = this.#points.findIndex((p) => p.id === adaptedPoint.id);
-      if (index === -1) {
-        throw new Error(`Point with id ${adaptedPoint.id} not found in local data`);
-      }
-
-      this.#points[index] = {
-        ...this.#points[index],
-        ...adaptedPoint,
-        id: adaptedPoint.id
-      };
-
-      // Notify observers of successful update
-      this.#notifyObservers();
-
-      return JSON.parse(JSON.stringify(this.#points[index]));
-    } catch (error) {
-      // Log error before rethrowing
-      console.error(error); throw error;
+    // Now update local data with server response
+    const index = this.#points.findIndex((p) => p.id === adaptedPoint.id);
+    if (index === -1) {
+      throw new Error(`Point with id ${adaptedPoint.id} not found in local data`);
     }
+
+    this.#points[index] = {
+      ...this.#points[index],
+      ...adaptedPoint,
+      id: adaptedPoint.id
+    };
+
+    // Notify observers of successful update
+    this.#notifyObservers();
+
+    return JSON.parse(JSON.stringify(this.#points[index]));
   }
 
   /**
@@ -272,25 +265,17 @@ export default class PointsModel {
     if (!apiService) {
       throw new Error('API service is required for server sync');
     }
-    // eslint-disable-next-line no-useless-catch
+    // Call API to create point on server
+    const createdPoint = await apiService.addPoint(newPoint);
 
-    try {
-      // Call API to create point on server
-      const createdPoint = await apiService.addPoint(newPoint);
+    // Insert into local array sorted by date
+    this.#points.push(createdPoint);
+    this.#sortPointsByDate();
 
-      // Insert into local array sorted by date
-      this.#points.push(createdPoint);
-      this.#sortPointsByDate();
+    // Notify observers of successful creation
+    this.#notifyObservers();
 
-      // Notify observers of successful creation
-      this.#notifyObservers();
-
-      return JSON.parse(JSON.stringify(createdPoint));
-    } catch (error) {
-      // Do NOT update local data if server creation fails
-      console.error(error); throw error;
-      // Error will be handled by caller
-    }
+    return JSON.parse(JSON.stringify(createdPoint));
   }
 
   /**
@@ -309,27 +294,20 @@ export default class PointsModel {
     if (!apiService) {
       throw new Error('API service is required for server sync');
     }
-    // eslint-disable-next-line no-useless-catch
+    // Call API to delete point from server
+    await apiService.deletePoint(pointId);
 
-    try {
-      // Call API to delete point from server
-      await apiService.deletePoint(pointId);
-
-      // Remove from local array
-      const index = this.#points.findIndex((p) => p.id === pointId);
-      if (index === -1) {
-        throw new Error(`Point with id ${pointId} not found in local data`);
-      }
-
-      this.#points.splice(index, 1);
-
-      // Notify observers of successful deletion
-      this.#notifyObservers();
-      // Error will be handled by caller
-    } catch (error) {
-      // Do NOT update local data if server deletion fails
-      console.error(error); throw error;
+    // Remove from local array
+    const index = this.#points.findIndex((p) => p.id === pointId);
+    if (index === -1) {
+      throw new Error(`Point with id ${pointId} not found in local data`);
     }
+
+    this.#points.splice(index, 1);
+
+    // Notify observers of successful deletion
+    this.#notifyObservers();
+    // Error will be handled by caller
   }
 
   /**
