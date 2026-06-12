@@ -350,7 +350,7 @@ export default class PointsModel {
       try {
         callback();
         // Silently ignore callback errors
-      } catch (error) {
+      } catch (error) { /* ignore callback errors */
       }
     });
   }
