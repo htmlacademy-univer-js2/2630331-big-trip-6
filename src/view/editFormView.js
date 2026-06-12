@@ -160,7 +160,7 @@ export default class EditFormView extends AbstractStatefulView {
         if (this._offersMap && this._offersMap.size > 0) {
           this.#availableOffers = Array.from(this._offersMap.values())
             .filter((o) => o.type === newType)
-            .map(({_type, ...o}) => o);
+            .map(({type: _type, ...o}) => o);
         }
         this.updateState({ type: newType, selectedOffers: [] });
       });
@@ -319,7 +319,7 @@ export default class EditFormView extends AbstractStatefulView {
     if (this._offersMap && this._offersMap.size > 0) {
       this.#availableOffers = Array.from(this._offersMap.values())
         .filter((o) => o.type === currentType)
-        .map(({_type, ...o}) => o);
+        .map(({type: _type, ...o}) => o);
     }
     this.attachEventListeners();
   }
