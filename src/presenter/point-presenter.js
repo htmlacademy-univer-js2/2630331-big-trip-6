@@ -31,7 +31,6 @@ export default class PointPresenter {
     if (this.#point.id) {
       const destination = this.#destinations.get(this.#point.destinationId);
       const pointOffers = (this.#point.offers || []).map((id) => this.#offers.get(id)).filter(Boolean);
-      console.log("Point data:", this.#point);
       this.#routePointView = new RoutePointView(this.#point, destination, pointOffers);
       this.#routePointView.setEditClickHandler(() => this.openEditForm());
       this.#routePointView.setFavoriteClickHandler(() => this.#handleFavoriteClick());
@@ -42,6 +41,7 @@ export default class PointPresenter {
   openEditForm() {
     const destination = this.#destinations.get(this.#point.destinationId);
     const availableOffers = Array.from(this.#offers.values())
+      // eslint-disable-next-line no-unused-vars
       .filter((o) => o.type === this.#point.type)
       .map(({type: _type, ...o}) => o);
     this.#editFormView = new EditFormView(

@@ -222,6 +222,7 @@ export default class PointsModel {
     if (!apiService) {
       throw new Error('API service is required for server sync');
     }
+    // eslint-disable-next-line no-useless-catch
 
     try {
       // Import adapter inside the method to avoid circular dependencies
@@ -271,6 +272,7 @@ export default class PointsModel {
     if (!apiService) {
       throw new Error('API service is required for server sync');
     }
+    // eslint-disable-next-line no-useless-catch
 
     try {
       // Call API to create point on server
@@ -307,6 +309,7 @@ export default class PointsModel {
     if (!apiService) {
       throw new Error('API service is required for server sync');
     }
+    // eslint-disable-next-line no-useless-catch
 
     try {
       // Call API to delete point from server
