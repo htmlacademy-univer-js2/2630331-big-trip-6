@@ -251,8 +251,8 @@ export default class PointsModel {
 
       return JSON.parse(JSON.stringify(this.#points[index]));
     } catch (error) {
-      // Do NOT update local data if server update fails
-      throw error;
+      // Log error before rethrowing
+      console.error(error); throw error;
     }
   }
 
@@ -288,7 +288,7 @@ export default class PointsModel {
       return JSON.parse(JSON.stringify(createdPoint));
     } catch (error) {
       // Do NOT update local data if server creation fails
-      throw error;
+      console.error(error); throw error;
       // Error will be handled by caller
     }
   }
@@ -328,7 +328,7 @@ export default class PointsModel {
       // Error will be handled by caller
     } catch (error) {
       // Do NOT update local data if server deletion fails
-      throw error;
+      console.error(error); throw error;
     }
   }
 

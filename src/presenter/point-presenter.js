@@ -41,8 +41,8 @@ export default class PointPresenter {
   openEditForm() {
     const destination = this.#destinations.get(this.#point.destinationId);
     const availableOffers = Array.from(this.#offers.values())
-      // eslint-disable-next-line no-unused-vars
       .filter((o) => o.type === this.#point.type)
+      // eslint-disable-next-line no-unused-vars
       .map(({type: _type, ...o}) => o);
     this.#editFormView = new EditFormView(
       this.#point, destination, availableOffers,
